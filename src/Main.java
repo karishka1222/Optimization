@@ -1,16 +1,19 @@
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Main {
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args) throws IOException {
+        FileReader reader = new FileReader("./tests/test1.txt");
         // input
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(reader);
         int functionSize = scanner.nextInt();
         int[] coeffFunction = new int[functionSize];
         for (int i = 0; i < functionSize; i++) {
             coeffFunction[i] = scanner.nextInt();
         }
+
         int rowConstraintSize = scanner.nextInt();
         int columnConstraintSize = scanner.nextInt();
         int[][] coeffConstraints = new int[rowConstraintSize][columnConstraintSize];
@@ -19,11 +22,13 @@ public class Main {
                 coeffConstraints[i][j] = scanner.nextInt();
             }
         }
+
         int rightHandSize = scanner.nextInt();
         int[] rightHandValues = new int[rightHandSize];
         for (int i = 0; i < rightHandSize; i++) {
             rightHandValues[i] = scanner.nextInt();
         }
+
         int accuracy = scanner.nextInt();
 
         // creating elements
