@@ -1,4 +1,6 @@
 import java.util.Scanner;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /*
  * Формат ввода:
@@ -11,7 +13,7 @@ import java.util.Scanner;
  *    (coeffConstraints), по одному ограничению в строке.
  * 6. Строка после ограничений: количество правых частей ограничений (rightHandSize).
  * 7. Далее строка с правыми частями ограничений (rightHandValues), перечисленными через пробел.
- * 8. Последняя строка: точность (accuracy) — на данном этапе точность может быть произвольной и игнорироваться.
+ * 8. Последняя строка: точность (accuracy)
  *
  * Пример ввода:
  * max
@@ -24,7 +26,7 @@ import java.util.Scanner;
  * 5 3 3                  // третье ограничение: 5x1 + 3x2 + 3x3 <= 180
  * 3                      // количество правых частей ограничений
  * 360 192 180            // правые части ограничений
- * 6                      // точность (можно игнорировать)
+ * 6                      // точность
  *
  * Формат вывода:
  * 1. Выводится оптимальное решение в виде значений переменных x1, x2, ..., xn.
@@ -51,7 +53,7 @@ public class Main {
      */
     public static void main(String[] args) {
 
-        // input
+        // Input
         Scanner scanner = new Scanner(System.in);
         String action = scanner.nextLine();
         int functionSize = scanner.nextInt();
@@ -74,7 +76,7 @@ public class Main {
         }
         int accuracy = scanner.nextInt();
 
-        // creating elements
+        // Creating elements
         Vector function = new Vector(functionSize, coeffFunction);
         Matrix constraints = new Matrix(rowConstraintSize, columnConstraintSize, coeffConstraints);
         Vector rightConstraints = new Vector(rightHandSize, rightHandValues);
@@ -116,7 +118,7 @@ public class Main {
         // Perform the simplex method iteration
         while (true) {
             System.out.println("Current tableau:");
-            printTableau(tableau, numRows, numCols + numRows);
+            printTableau(tableau, numRows, numCols + numRows, accuracy);
 
             int pivotColumn = findPivotColumn(tableau, numRows, numCols + numRows, action);
             if (pivotColumn == -1) {
@@ -132,15 +134,15 @@ public class Main {
 
             // Perform pivot
             System.out.println("Pivoting on row " + pivotRow + " and column " + pivotColumn);
-            pivot(tableau, pivotRow, pivotColumn, numRows, numCols + numRows);
+            pivot(tableau, pivotRow, pivotColumn, numRows, numCols + numRows, accuracy);
 
             // Print tableau after each iteration
             System.out.println("Tableau after pivoting:");
-            printTableau(tableau, numRows, numCols + numRows);
+            printTableau(tableau, numRows, numCols + numRows, accuracy);
         }
 
         // Output the solution
-        printSolution(tableau, numRows, numCols);
+        printSolution(tableau, numRows, numCols, C, accuracy);
     }
 
     /**
@@ -205,13 +207,14 @@ public class Main {
      * @param pivotColumn the index of the pivot column
      * @param numRows     the number of rows in the tableau
      * @param numCols     the number of columns in the tableau
+     * @param accuracy    the decimal precision to apply to calculations
      */
-    public static void pivot(double[][] tableau, int pivotRow, int pivotColumn, int numRows, int numCols) {
+    public static void pivot(double[][] tableau, int pivotRow, int pivotColumn, int numRows, int numCols, int accuracy) {
         double pivotValue = tableau[pivotRow][pivotColumn];
 
         // Normalize the pivot row
         for (int j = 0; j < numCols + 1; j++) {
-            tableau[pivotRow][j] /= pivotValue;
+            tableau[pivotRow][j] = round(tableau[pivotRow][j] / pivotValue, accuracy);
         }
 
         // Make other rows zero in pivot column
@@ -219,7 +222,7 @@ public class Main {
             if (i != pivotRow) {
                 double factor = tableau[i][pivotColumn];
                 for (int j = 0; j < numCols + 1; j++) {
-                    tableau[i][j] -= factor * tableau[pivotRow][j];
+                    tableau[i][j] = round(tableau[i][j] - factor * tableau[pivotRow][j], accuracy);
                 }
             }
         }
@@ -231,11 +234,12 @@ public class Main {
      * @param tableau the tableau to be printed
      * @param numRows the number of rows in the tableau
      * @param numCols the number of columns in the tableau
+     * @param accuracy the decimal precision to apply when printing
      */
-    public static void printTableau(double[][] tableau, int numRows, int numCols) {
+    public static void printTableau(double[][] tableau, int numRows, int numCols, int accuracy) {
         for (int i = 0; i <= numRows; i++) {
             for (int j = 0; j <= numCols; j++) {
-                System.out.printf("%.2f ", tableau[i][j]);
+                System.out.printf("%." + accuracy + "f ", tableau[i][j]);
             }
             System.out.println();
         }
@@ -248,35 +252,59 @@ public class Main {
      * @param tableau the final tableau containing the solution
      * @param numRows the number of rows in the tableau
      * @param numCols the number of columns representing variables
+     * @param C       the vector representing the objective function's coefficients
+     * @param accuracy the decimal precision to apply when printing
      */
-    public static void printSolution(double[][] tableau, int numRows, int numCols) {
-        double[] solution = new double[numCols]; // numCols refers to the number of variables (without slack)
-
-        // Find basic variables, among which only x1, x2, x3 are of interest
-        for (int j = 0; j < numCols; j++) {
-            boolean isBasic = false;
-            double value = 0.0;
-            for (int i = 0; i < numRows; i++) {
-                if (tableau[i][j] == 1) {
-                    isBasic = true;
-                    value = tableau[i][tableau[0].length - 1];
-                } else if (tableau[i][j] != 0) {
+    public static void printSolution(double[][] tableau, int numRows, int numCols, Vector C, int accuracy) {
+        double[] solution = new double[numCols];
+        for (int i = 0; i < numCols; i++) {
+            boolean isBasic = true;
+            int rowIndex = -1;
+            for (int j = 0; j < numRows; j++) {
+                if (tableau[j][i] == 1) {
+                    if (rowIndex == -1) {
+                        rowIndex = j;
+                    } else {
+                        isBasic = false;
+                        break;
+                    }
+                } else if (tableau[j][i] != 0) {
                     isBasic = false;
                     break;
                 }
             }
-            if (isBasic) {
-                solution[j] = value;
+            if (isBasic && rowIndex != -1) {
+                solution[i] = tableau[rowIndex][tableau[0].length - 1];
             } else {
-                solution[j] = 0.0; // If the variable is non-basic, it is set to 0
+                solution[i] = 0;
             }
         }
 
-        // Output the optimal solution
+        // Output solution
         System.out.println("Optimal solution:");
-        for (int j = 0; j < numCols; j++) {
-            System.out.printf("x%d = %.2f\n", j + 1, solution[j]);
+        for (int i = 0; i < solution.length; i++) {
+            System.out.printf("x%d = %." + accuracy + "f\n", i + 1, solution[i]);
         }
+
+        // Calculate optimal value
+        double optimalValue = 0;
+        for (int i = 0; i < numCols; i++) {
+            optimalValue += C.getValue(i) * solution[i];
+        }
+        System.out.printf("Optimal value: %." + accuracy + "f\n", optimalValue);
+    }
+
+    /**
+     * Rounds a given value to the specified number of decimal places.
+     *
+     * @param value    the value to be rounded
+     * @param accuracy the number of decimal places
+     * @return the rounded value
+     */
+    public static double round(double value, int accuracy) {
+        BigDecimal bd = new BigDecimal(Double.toString(value));
+        bd = bd.setScale(accuracy, RoundingMode.HALF_UP);
+        return bd.doubleValue();
     }
 }
 
