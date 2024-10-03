@@ -1,4 +1,4 @@
-Lab2  first problem
+Lab2  problem 1
 
 Input:
 max
