@@ -8,24 +8,20 @@ import java.math.RoundingMode;
  * 0. min или max: что мы хотим сделать
  * 1. Первая строка: количество переменных целевой функции (functionSize).
  * 2. Вторая строка: коэффициенты целевой функции (coeffFunction), перечисленные через пробел.
- * 3. Третья строка: количество ограничений (rowConstraintSize).
- * 4. Четвертая строка: количество переменных в каждом ограничении (columnConstraintSize).
- * 5. Следующие строки (rowConstraintSize штук): коэффициенты каждого ограничения
+ * 3. Третья строка: количество ограничений (constraintSize).
+ * 4. Следующие строки (ConstraintSize штук): коэффициенты каждого ограничения
  *    (coeffConstraints), по одному ограничению в строке.
- * 6. Строка после ограничений: количество правых частей ограничений (rightHandSize).
- * 7. Далее строка с правыми частями ограничений (rightHandValues), перечисленными через пробел.
- * 8. Последняя строка: точность (accuracy)
+ * 5. Далее строка с правыми частями ограничений (rightHandValues), перечисленными через пробел.
+ * 6. Последняя строка: точность (accuracy)
  *
  * Пример ввода:
  * max
  * 3                      // количество переменных
  * 9 10 16                // коэффициенты целевой функции F(x1, x2, x3) = 9x1 + 10x2 + 16x3
  * 3                      // количество ограничений
- * 3                      // количество переменных в каждом ограничении
  * 18 15 12               // первое ограничение: 18x1 + 15x2 + 12x3 <= 360
  * 6 4 8                  // второе ограничение: 6x1 + 4x2 + 8x3 <= 192
  * 5 3 3                  // третье ограничение: 5x1 + 3x2 + 3x3 <= 180
- * 3                      // количество правых частей ограничений
  * 360 192 180            // правые части ограничений
  * 6                      // точность
  *
@@ -62,25 +58,23 @@ public class Main {
         for (int i = 0; i < functionSize; i++) {
             coeffFunction[i] = scanner.nextInt();
         }
-        int rowConstraintSize = scanner.nextInt();
-        int columnConstraintSize = scanner.nextInt();
-        int[][] coeffConstraints = new int[rowConstraintSize][columnConstraintSize];
-        for (int i = 0; i < rowConstraintSize; i++) {
-            for (int j = 0; j < columnConstraintSize; j++) {
+        int constraintSize = scanner.nextInt();
+        int[][] coeffConstraints = new int[constraintSize][constraintSize];
+        for (int i = 0; i < constraintSize; i++) {
+            for (int j = 0; j < constraintSize; j++) {
                 coeffConstraints[i][j] = scanner.nextInt();
             }
         }
-        int rightHandSize = scanner.nextInt();
-        int[] rightHandValues = new int[rightHandSize];
-        for (int i = 0; i < rightHandSize; i++) {
+        int[] rightHandValues = new int[constraintSize];
+        for (int i = 0; i < constraintSize; i++) {
             rightHandValues[i] = scanner.nextInt();
         }
         int accuracy = scanner.nextInt();
 
         // Creating elements
         Vector function = new Vector(functionSize, coeffFunction);
-        Matrix constraints = new Matrix(rowConstraintSize, columnConstraintSize, coeffConstraints);
-        Vector rightConstraints = new Vector(rightHandSize, rightHandValues);
+        Matrix constraints = new Matrix(constraintSize, constraintSize, coeffConstraints);
+        Vector rightConstraints = new Vector(constraintSize, rightHandValues);
 
         // Print the initial problem
         System.out.print(action + " z =");
