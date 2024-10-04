@@ -1,3 +1,4 @@
+import java.sql.SQLOutput;
 import java.util.Scanner;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -81,6 +82,21 @@ public class Main {
         Matrix constraints = new Matrix(rowConstraintSize, columnConstraintSize, coeffConstraints);
         Vector rightConstraints = new Vector(rightHandSize, rightHandValues);
 
+        // Print the initial problem
+        System.out.print(action + " z =");
+        for (int i = 0; i < function.getSize(); i++) {
+            System.out.printf(" %d*x%d %s", function.getValue(i), i + 1, i + 1 == function.getSize() ? "\n" : "+");
+        }
+        System.out.println("Subject to the constrains:");
+        for (int i = 0; i < constraints.getNumRows(); i++) {
+            for (int j = 0; j < constraints.getNumCols(); j++) {
+                System.out.printf(" %d*x%d %s", constraints.getValue(i, j), j + 1,
+                        j + 1 == constraints.getNumCols() ? "" : "+");
+            }
+            System.out.printf("<= %d\n", rightConstraints.getValue(i));
+        }
+
+
         // Applying simplex method
         simplexMethod(function, constraints, rightConstraints, accuracy, action);
     }
@@ -117,8 +133,8 @@ public class Main {
 
         // Perform the simplex method iteration
         while (true) {
-            System.out.println("Current tableau:");
-            printTableau(tableau, numRows, numCols + numRows, accuracy);
+            //System.out.println("Current tableau:");
+            //printTableau(tableau, numRows, numCols + numRows, accuracy);
 
             int pivotColumn = findPivotColumn(tableau, numRows, numCols + numRows, action);
             if (pivotColumn == -1) {
@@ -133,12 +149,12 @@ public class Main {
             }
 
             // Perform pivot
-            System.out.println("Pivoting on row " + pivotRow + " and column " + pivotColumn);
+            //System.out.println("Pivoting on row " + pivotRow + " and column " + pivotColumn);
             pivot(tableau, pivotRow, pivotColumn, numRows, numCols + numRows, accuracy);
 
             // Print tableau after each iteration
-            System.out.println("Tableau after pivoting:");
-            printTableau(tableau, numRows, numCols + numRows, accuracy);
+            //System.out.println("Tableau after pivoting:");
+            //printTableau(tableau, numRows, numCols + numRows, accuracy);
         }
 
         // Output the solution
@@ -209,7 +225,8 @@ public class Main {
      * @param numCols     the number of columns in the tableau
      * @param accuracy    the decimal precision to apply to calculations
      */
-    public static void pivot(double[][] tableau, int pivotRow, int pivotColumn, int numRows, int numCols, int accuracy) {
+    public static void pivot(double[][] tableau, int pivotRow, int pivotColumn, int numRows, int numCols,
+                             int accuracy) {
         double pivotValue = tableau[pivotRow][pivotColumn];
 
         // Normalize the pivot row
@@ -231,9 +248,9 @@ public class Main {
     /**
      * Prints the current state of the tableau.
      *
-     * @param tableau the tableau to be printed
-     * @param numRows the number of rows in the tableau
-     * @param numCols the number of columns in the tableau
+     * @param tableau  the tableau to be printed
+     * @param numRows  the number of rows in the tableau
+     * @param numCols  the number of columns in the tableau
      * @param accuracy the decimal precision to apply when printing
      */
     public static void printTableau(double[][] tableau, int numRows, int numCols, int accuracy) {
@@ -249,10 +266,10 @@ public class Main {
     /**
      * Prints the optimal solution after the Simplex method is completed.
      *
-     * @param tableau the final tableau containing the solution
-     * @param numRows the number of rows in the tableau
-     * @param numCols the number of columns representing variables
-     * @param C       the vector representing the objective function's coefficients
+     * @param tableau  the final tableau containing the solution
+     * @param numRows  the number of rows in the tableau
+     * @param numCols  the number of columns representing variables
+     * @param C        the vector representing the objective function's coefficients
      * @param accuracy the decimal precision to apply when printing
      */
     public static void printSolution(double[][] tableau, int numRows, int numCols, Vector C, int accuracy) {
