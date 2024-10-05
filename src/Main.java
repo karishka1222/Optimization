@@ -79,15 +79,15 @@ public class Main {
         // Print the initial problem
         System.out.print(action + " z =");
         for (int i = 0; i < function.getSize(); i++) {
-            System.out.printf(" %d*x%d %s", function.getValue(i), i + 1, i + 1 == function.getSize() ? "\n" : "+");
+            System.out.printf(" %d•x%d %s", function.getValue(i), i + 1, i + 1 == function.getSize() ? "\n" : "+");
         }
         System.out.println("Subject to the constrains:");
         for (int i = 0; i < constraints.getNumRows(); i++) {
             for (int j = 0; j < constraints.getNumCols(); j++) {
-                System.out.printf(" %d*x%d %s", constraints.getValue(i, j), j + 1,
+                System.out.printf(" %d•x%d %s", constraints.getValue(i, j), j + 1,
                         j + 1 == constraints.getNumCols() ? "" : "+");
             }
-            System.out.printf("<= %d\n", rightConstraints.getValue(i));
+            System.out.printf("≤ %d\n", rightConstraints.getValue(i));
         }
 
 
