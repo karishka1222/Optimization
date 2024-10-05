@@ -59,33 +59,39 @@ public class Main {
             coeffFunction[i] = scanner.nextInt();
         }
         int constraintSize = scanner.nextInt();
-        int[][] coeffConstraints = new int[constraintSize][constraintSize];
-        for (int i = 0; i < constraintSize; i++) {
-            for (int j = 0; j < constraintSize; j++) {
+        int[][] coeffConstraints = new int[constraintSize][functionSize];
+        for (int i = 0; i < coeffConstraints.length; i++) {
+            for (int j = 0; j < coeffConstraints[0].length; j++) {
                 coeffConstraints[i][j] = scanner.nextInt();
             }
         }
         int[] rightHandValues = new int[constraintSize];
-        for (int i = 0; i < constraintSize; i++) {
+        for (int i = 0; i < rightHandValues.length; i++) {
             rightHandValues[i] = scanner.nextInt();
         }
         int accuracy = scanner.nextInt();
 
         // Creating elements
         Vector function = new Vector(functionSize, coeffFunction);
-        Matrix constraints = new Matrix(constraintSize, constraintSize, coeffConstraints);
-        Vector rightConstraints = new Vector(constraintSize, rightHandValues);
+        Matrix constraints = new Matrix(constraintSize, functionSize, coeffConstraints);
+        Vector rightConstraints = new Vector(functionSize, rightHandValues);
 
         // Print the initial problem
-        System.out.print(action + " z =");
+        System.out.print(action + " z = ");
         for (int i = 0; i < function.getSize(); i++) {
-            System.out.printf(" %d•x%d %s", function.getValue(i), i + 1, i + 1 == function.getSize() ? "\n" : "+");
+            System.out.printf("%s%d•x%d",
+                    i == 0 ? (function.getValue(i) < 0 ? "-" : "") : (function.getValue(i) < 0 ? " - " : " + "),
+                    Math.abs(function.getValue(i)),
+                    i + 1);
         }
+        System.out.println();//make new line
         System.out.println("Subject to the constrains:");
         for (int i = 0; i < constraints.getNumRows(); i++) {
             for (int j = 0; j < constraints.getNumCols(); j++) {
-                System.out.printf(" %d•x%d %s", constraints.getValue(i, j), j + 1,
-                        j + 1 == constraints.getNumCols() ? "" : "+");
+                System.out.printf("%s%d•x%d",
+                        j == 0 ? (constraints.getValue(i, j) < 0 ? "-" : "") :
+                                (constraints.getValue(i, j) < 0 ? " - " : " + "),
+                        Math.abs(constraints.getValue(i, j)), j + 1);
             }
             System.out.printf("≤ %d\n", rightConstraints.getValue(i));
         }
