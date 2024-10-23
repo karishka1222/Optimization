@@ -1,36 +1,31 @@
 import java.util.Arrays;
-
-// Data for test from test 4 for Simplex Method
-// нам надо унифицировать ввод для 2-х методов и поправить структуру кода
+import java.util.Scanner;
 
 public class InteriorPointMethod {
 
     public static void main(String[] args) {
-        // Coefficients for the objective function: Maximize 9x1 + 10x2 + 16x3
-        double[] c = {9, 10, 16, 0, 0, 0}; // Slack variables have zero coefficients Test 4
+        // Коэффициенты целевой функции: Максимизировать 9x1 + 10x2 + 16x3
+        double[] c = {9, 10, 16, 0, 0, 0}; // Коэффициенты при дополнительных переменных равны нулю
 
-//        double[] c = {3, 1, 3, 0, 0, 0}; // Slack variables have zero coefficients Test 4
-
-        // Coefficients for the constraints (including slack variables) Test 4
+        // Коэффициенты ограничений (включая дополнительные переменные)
         double[][] A = {
-                {18, 15, 12, 1, 0, 0}, // First constraint
-                {6, 4, 8, 0, 1, 0},    // Second constraint
-                {5, 3, 3, 0, 0, 1}     // Third constraint
+                {18, 15, 12, 1, 0, 0}, // Первое ограничение
+                {6, 4, 8, 0, 1, 0},    // Второе ограничение
+                {5, 3, 3, 0, 0, 1}     // Третье ограничение
         };
 
-//        double[][] A = {
-//                {2, 1, 1, 1, 0, 0}, // First constraint
-//                {1, 2, 3, 0, 1, 0},    // Second constraint
-//                {2, 2, 1, 0, 0, 1}     // Third constraint
-//        };
-
-        // Right-hand side of the constraints Test 4
+        // Правая часть ограничений
         double[] b = {360, 192, 180};
 
-//        double[] b = {2, 5, 6};
-
-        // Initial solution: (x1, x2, x3, x4, x5, x6) = (1, 1, 1, 315, 174, 169)
+        // Начальное решение: (x1, x2, x3, x4, x5, x6) = (1, 1, 1, 315, 174, 169)
         double[] x = {1, 1, 1, 315, 174, 169};
+
+//        Scanner inputData = new Scanner(System.in);
+//        String action = inputData.nextLine();
+//
+//        if (action.equals("min")){
+//            //коэффициенты функции нашей делаем противоположными по знаку, дальше всё также
+//        }
 
         double alpha = 0.5;
         int iteration = 1;
@@ -38,130 +33,115 @@ public class InteriorPointMethod {
         System.out.println("For alpha = " + alpha);
 
         while (true) {
-            double[] v = Arrays.copyOf(x, x.length); // Save a copy of x
-            double[][] D = diag(x);                  // Create diagonal matrix from x
-            double[][] AA = dot(A, D);               // A * D
-            double[] cc = dot(D, c);                 // D * c
-            double[][] I = eye(c.length);            // Identity matrix
-            double[][] F = dot(AA, transpose(AA));   // AA * AA^T
-            double[][] FI = inverse(F);              // Inverse of F
-            double[][] H = dot(transpose(AA), FI);   // AA^T * FI
-            double[][] P = subtract(I, dot(H, AA));  // P = I - H * AA
-            double[] cp = dot(P, cc);                // cp = P * cc
+            double[] v = Arrays.copyOf(x, x.length); // Сохранить копию x
+            Matrix D = Matrix.diag(x);               // Создать диагональную матрицу из x
+            Matrix AA = new Matrix(A).dot(D); // A * D
+            Vector cc = D.dot(new Vector(c));         // D * c
+            Matrix I = Matrix.eye(c.length);          // Единичная матрица
+            Matrix F = AA.dot(AA.transpose());        // AA * AA^T
+            Matrix FI = F.inverse();                  // Обратная матрица F
+            Matrix H = AA.transpose().dot(FI);        // AA^T * FI
+            Matrix P = I.subtract(H.dot(AA));         // P = I - H * AA
+            Vector cp = P.dot(cc);                    // cp = P * cc
 
-            double nu = Math.abs(min(cp));           // Calculate nu
+            double nu = Math.abs(cp.min());           // Вычислить nu
             if (nu == 0) {
-                System.out.println("Warning: nu is zero, cp: " + Arrays.toString(cp));
-                break; // Handle zero nu case
+                System.out.println("Warning: nu is zero, cp: " + cp);
+                break; // Обработка случая с нулевым nu
             }
 
-//             y = 1 + (alpha / nu) * cp
-            double[] y = add(ones(cp.length), multiply(cp, alpha / nu));
-            double[] yy = dot(D, y);                 // yy = D * y
-            x = yy;                                  // Update x
+            // y = 1 + (alpha / nu) * cp
+            Vector y = Vector.ones(cp.size()).add(cp.multiply(alpha / nu));
+            Vector yy = D.dot(y);                      // yy = D * y
+            x = yy.toArray();                          // Обновить x
 
-            // Display iteration steps
             if (iteration <= 4) {
                 System.out.println("In iteration " + iteration + " we have x = " + Arrays.toString(x) + "\n");
             }
             iteration++;
 
-//             Termination condition
-            if (norm(subtract(yy, v), 2) < 0.0001) {
+            // Условие завершения
+            if (yy.subtract(new Vector(v)).norm(2) < 0.0001) {
                 break;
             }
         }
 
-        //results
+        // results
         System.out.println("In the last iteration we have x = " + Arrays.toString(x) + "\n");
-        System.out.println(9 * x[0] + 10 * x[1] + 16 * x[2]);
+        System.out.println("Objective function value: " + (9 * x[0] + 10 * x[1] + 16 * x[2]));
+    }
+}
+
+// class Matrix
+class Matrix {
+    private int rows;
+    private int cols;
+    private double[][] values;
+
+    public Matrix(int rows, int cols) {
+        this.rows = rows;
+        this.cols = cols;
+        this.values = new double[rows][cols];
     }
 
-    // желательно оформить в методы класса Matrix и/или Vector(но это если по-хорошему сделать)
-
-    // D matrix
-    public static double[][] diag(double[] vector) {
-        double[][] result = new double[vector.length][vector.length];
-        for (int i = 0; i < vector.length; i++) {
-            result[i][i] = vector[i];
+    public Matrix(double[][] values) {
+        this.rows = values.length;
+        this.cols = values[0].length;
+        this.values = new double[rows][cols];
+        for (int i = 0; i < rows; i++) {
+            this.values[i] = Arrays.copyOf(values[i], cols);
         }
-        return result;
     }
 
-    // MUX for matrix
-    public static double[][] dot(double[][] A, double[][] B) {
-        int rowsA = A.length;           // number of row in A
-        int colsA = A[0].length;       // number of columns in A
-        int rowsB = B.length;           // number of row in B
-        int colsB = B[0].length;       // number of columns in B
+    public double getValue(int i, int j) {
+        return values[i][j];
+    }
 
-        // check of validity of matrix size
-        if (colsA != rowsB) {
-            System.out.println("Invalid multiplication: colsA (" + colsA + ") != rowsB (" + rowsB + ")");
-            throw new IllegalArgumentException("Number of columns in A must be equal to the number of rows in B.");
-        }
+    public void setValue(int i, int j, double value) {
+        values[i][j] = value;
+    }
 
-        double[][] result = new double[rowsA][colsB];
+    // number of row
+    public int getNumRows() {
+        return rows;
+    }
 
-        for (int i = 0; i < rowsA; i++) {
-            for (int j = 0; j < colsB; j++) {
-                for (int k = 0; k < colsA; k++) {
-                    result[i][j] += A[i][k] * B[k][j];
-                }
+    // number of column
+    public int getNumCols() {
+        return cols;
+    }
+
+    // T for Matrix
+    public Matrix transpose() {
+        double[][] transposed = new double[cols][rows];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                transposed[j][i] = values[i][j];
             }
         }
-        return result;
-    }
-
-
-    // MUX for vector
-    public static double[] dot(double[][] A, double[] B) {
-        int rowsA = A.length;
-        int colsA = A[0].length;
-        double[] result = new double[rowsA];
-        for (int i = 0; i < rowsA; i++) {
-            for (int j = 0; j < colsA; j++) {
-                result[i] += A[i][j] * B[j];
-            }
-        }
-        return result;
-    }
-
-    // T for matrix
-    public static double[][] transpose(double[][] A) {
-        int rowsA = A.length;
-        int colsA = A[0].length;
-        double[][] result = new double[colsA][rowsA];
-        for (int i = 0; i < rowsA; i++) {
-            for (int j = 0; j < colsA; j++) {
-                result[j][i] = A[i][j];
-            }
-        }
-        return result;
+        return new Matrix(transposed);
     }
 
     // Inverse
-    public static double[][] inverse(double[][] A) {
-        int n = A.length;
-        // Проверка, что матрица является квадратной
-        if (n == 0 || A[0].length != n) {
-            throw new IllegalArgumentException("Матрица должна быть квадратной.");
+    public Matrix inverse() {
+        if (rows != cols) {
+            throw new IllegalArgumentException("Matrix must be square.");
         }
 
-        // Matrix [A | I]
-        double[][] augmentedMatrix = new double[n][2 * n];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                augmentedMatrix[i][j] = A[i][j];
+        double[][] augmentedMatrix = new double[rows][2 * rows];
+
+        // creation [A | I]
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < rows; j++) {
+                augmentedMatrix[i][j] = values[i][j];
             }
-            augmentedMatrix[i][i + n] = 1; // Заполнение единичной матрицы
+            augmentedMatrix[i][i + rows] = 1;
         }
 
-        for (int i = 0; i < n; i++) {
-            // Max item in column
+        for (int i = 0; i < rows; i++) {
             double maxEl = Math.abs(augmentedMatrix[i][i]);
             int maxRow = i;
-            for (int k = i + 1; k < n; k++) {
+            for (int k = i + 1; k < rows; k++) {
                 if (Math.abs(augmentedMatrix[k][i]) > maxEl) {
                     maxEl = Math.abs(augmentedMatrix[k][i]);
                     maxRow = k;
@@ -172,558 +152,203 @@ public class InteriorPointMethod {
             augmentedMatrix[maxRow] = augmentedMatrix[i];
             augmentedMatrix[i] = temp;
 
-            // Upper triangle form
-            for (int k = i + 1; k < n; k++) {
+            for (int k = i + 1; k < rows; k++) {
                 double factor = augmentedMatrix[k][i] / augmentedMatrix[i][i];
-                for (int j = 0; j < 2 * n; j++) {
+                for (int j = 0; j < 2 * rows; j++) {
                     augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
                 }
             }
         }
 
-        for (int i = n - 1; i >= 0; i--) {
-
+        for (int i = rows - 1; i >= 0; i--) {
             double leadingElement = augmentedMatrix[i][i];
-            for (int j = 0; j < 2 * n; j++) {
+            for (int j = 0; j < 2 * rows; j++) {
                 augmentedMatrix[i][j] /= leadingElement;
             }
-            // pivoting
             for (int k = i - 1; k >= 0; k--) {
                 double factor = augmentedMatrix[k][i];
-                for (int j = 0; j < 2 * n; j++) {
+                for (int j = 0; j < 2 * rows; j++) {
                     augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
                 }
             }
         }
 
-        double[][] inverseMatrix = new double[n][n];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                inverseMatrix[i][j] = augmentedMatrix[i][j + n];
+        double[][] inverseMatrix = new double[rows][rows];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < rows; j++) {
+                inverseMatrix[i][j] = augmentedMatrix[i][j + rows];
             }
         }
 
-        return inverseMatrix;
+        return new Matrix(inverseMatrix);
     }
 
-    // Identity matrix
-    public static double[][] eye(int size) {
-        double[][] result = new double[size][size];
-        for (int i = 0; i < size; i++) {
-            result[i][i] = 1;
+    // MUX for Matrix
+    public Matrix dot(Matrix B) {
+        if (cols != B.getNumRows()) {
+            throw new IllegalArgumentException("Matrix dimensions do not match for multiplication.");
         }
-        return result;
+
+        double[][] result = new double[rows][B.getNumCols()];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < B.getNumCols(); j++) {
+                for (int k = 0; k < cols; k++) {
+                    result[i][j] += values[i][k] * B.getValue(k, j);
+                }
+            }
+        }
+        return new Matrix(result);
     }
 
-    // subtraction for matrix
-    public static double[][] subtract(double[][] A, double[][] B) {
-        int rows = A.length;
-        int cols = A[0].length;
+    // MUX Matrix*Vector
+    public Vector dot(Vector vector) {
+        if (cols != vector.size()) {
+            throw new IllegalArgumentException("Matrix and vector dimensions do not match.");
+        }
+
+        double[] result = new double[rows];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                result[i] += values[i][j] * vector.get(j);
+            }
+        }
+        return new Vector(result);
+    }
+
+    // D Matrix
+    public static Matrix diag(double[] values) {
+        int n = values.length;
+        double[][] diagMatrix = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            diagMatrix[i][i] = values[i];
+        }
+        return new Matrix(diagMatrix);
+    }
+
+    // Identity
+    public static Matrix eye(int size) {
+        double[][] identity = new double[size][size];
+        for (int i = 0; i < size; i++) {
+            identity[i][i] = 1.0;
+        }
+        return new Matrix(identity);
+    }
+
+    // Subtraction
+    public Matrix subtract(Matrix other) {
+        if (this.rows != other.getNumRows() || this.cols != other.getNumCols()) {
+            throw new IllegalArgumentException("Matrix dimensions do not match for subtraction.");
+        }
+
         double[][] result = new double[rows][cols];
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                result[i][j] = A[i][j] - B[i][j];
+                result[i][j] = values[i][j] - other.getValue(i, j);
             }
         }
-        return result;
-    }
-
-    // Identity vector
-    public static double[] ones(int size) {
-        double[] result = new double[size];
-        Arrays.fill(result, 1);
-        return result;
-    }
-
-    // MUX for vector
-    public static double[] multiply(double[] vector, double scalar) {
-        double[] result = new double[vector.length];
-        for (int i = 0; i < vector.length; i++) {
-            result[i] = vector[i] * scalar;
-        }
-        return result;
-    }
-
-    // instruction for vector
-    public static double[] subtract(double[] A, double[] B) {
-        double[] result = new double[A.length];
-        for (int i = 0; i < A.length; i++) {
-            result[i] = A[i] - B[i];
-        }
-        return result;
-    }
-
-    // norm of vector
-    public static double norm(double[] vector, int ord) {
-        double sum = 0;
-        for (double v : vector) {
-            sum += Math.pow(v, ord);
-        }
-        return Math.pow(sum, 1.0 / ord);
-    }
-
-    // min item of vector
-    public static double min(double[] vector) {
-        double minValue = vector[0];
-        for (double v : vector) {
-            if (v < minValue) {
-                minValue = v;
-            }
-        }
-        return minValue;
-    }
-
-    // adding for vector
-    public static double[] add(double[] A, double[] B) {
-        double[] result = new double[A.length];
-        for (int i = 0; i < A.length; i++) {
-            result[i] = A[i] + B[i];
-        }
-        return result;
+        return new Matrix(result);
     }
 }
 
+class Vector {
+    private double[] values;
 
+    public Vector(double[] values) {
+        this.values = Arrays.copyOf(values, values.length);
+    }
 
+    public double get(int index) {
+        return values[index];
+    }
 
+    public int size() {
+        return values.length;
+    }
 
+    public Vector copy() {
+        return new Vector(Arrays.copyOf(values, values.length));
+    }
 
+    // MUX
+    public Vector multiply(double scalar) {
+        double[] result = new double[values.length];
+        for (int i = 0; i < values.length; i++) {
+            result[i] = values[i] * scalar;
+        }
+        return new Vector(result);
+    }
 
+    // Add
+    public Vector add(Vector other) {
+        if (values.length != other.size()) {
+            throw new IllegalArgumentException("Vector dimensions do not match for addition.");
+        }
 
+        double[] result = new double[values.length];
+        for (int i = 0; i < values.length; i++) {
+            result[i] = values[i] + other.get(i);
+        }
+        return new Vector(result);
+    }
 
+    public Vector add(double scalar) {
+        double[] result = new double[values.length];
+        for (int i = 0; i < values.length; i++) {
+            result[i] = values[i] + scalar;
+        }
+        return new Vector(result);
+    }
 
+    // MUV Vector*D
+    public Vector dot(Vector other) {
+        if (values.length != other.size()) {
+            throw new IllegalArgumentException("Vector dimensions do not match for dot product.");
+        }
 
+        double[] result = new double[values.length];
+        for (int i = 0; i < values.length; i++) {
+            result[i] = values[i] * other.get(i);
+        }
+        return new Vector(result);
+    }
 
+    public double norm(int p) {
+        double sum = 0.0;
+        for (double v : values) {
+            sum += Math.pow(Math.abs(v), p);
+        }
+        return Math.pow(sum, 1.0 / p);
+    }
 
+    public double min() {
+        return Arrays.stream(values).min().orElse(Double.NaN);
+    }
 
+    // Identity Vector
+    public static Vector ones(int size) {
+        double[] onesArray = new double[size];
+        Arrays.fill(onesArray, 1.0);
+        return new Vector(onesArray);
+    }
 
+    public Vector subtract(Vector other) {
+        if (values.length != other.size()) {
+            throw new IllegalArgumentException("Vector dimensions do not match for subtraction.");
+        }
 
-// по-идее на всё это ООП можно забить конечно
+        double[] result = new double[values.length];
+        for (int i = 0; i < values.length; i++) {
+            result[i] = values[i] - other.get(i);
+        }
+        return new Vector(result);
+    }
 
-//class Vector {
-//    private int n;          // Размер вектора
-//    private double[] values; // Массив для хранения элементов вектора
-//
-//    /**
-//     * Конструктор для создания вектора заданного размера.
-//     * Все элементы вектора инициализируются нулем.
-//     *
-//     * @param n размер вектора
-//     */
-//    public Vector(int n) {
-//        this.n = n;
-//        this.values = new double[n];
-//    }
-//
-//    /**
-//     * Конструктор для создания вектора с заданными значениями.
-//     *
-//     * @param values массив значений вектора
-//     */
-//    public Vector(double[] values) {
-//        this.n = values.length;
-//        this.values = Arrays.copyOf(values, n);
-//    }
-//
-//    /**
-//     * Получает значение вектора по заданному индексу.
-//     *
-//     * @param i индекс элемента
-//     * @return значение элемента по указанному индексу
-//     */
-//    public double getValue(int i) {
-//        if (i < 0 || i >= n) {
-//            throw new IndexOutOfBoundsException("Индекс вне диапазона.");
-//        }
-//        return values[i];
-//    }
-//
-//    /**
-//     * Устанавливает значение элемента по указанному индексу.
-//     *
-//     * @param i индекс элемента
-//     * @param value новое значение элемента
-//     */
-//    public void setValue(int i, double value) {
-//        if (i < 0 || i >= n) {
-//            throw new IndexOutOfBoundsException("Индекс вне диапазона.");
-//        }
-//        values[i] = value;
-//    }
-//
-//    /**
-//     * Возвращает размер вектора.
-//     *
-//     * @return размер вектора
-//     */
-//    public int getSize() {
-//        return n;
-//    }
-//
-//    /**
-//     * Складывает два вектора.
-//     *
-//     * @param other другой вектор
-//     * @return результат сложения в виде нового вектора
-//     */
-//    public Vector add(Vector other) {
-//        if (n != other.getSize()) {
-//            throw new IllegalArgumentException("Размеры векторов должны совпадать.");
-//        }
-//        double[] result = new double[n];
-//        for (int i = 0; i < n; i++) {
-//            result[i] = this.values[i] + other.getValue(i);
-//        }
-//        return new Vector(result);
-//    }
-//
-//    /**
-//     * Вычитает другой вектор из текущего.
-//     *
-//     * @param other другой вектор
-//     * @return результат вычитания в виде нового вектора
-//     */
-//    public Vector subtract(Vector other) {
-//        if (n != other.getSize()) {
-//            throw new IllegalArgumentException("Размеры векторов должны совпадать.");
-//        }
-//        double[] result = new double[n];
-//        for (int i = 0; i < n; i++) {
-//            result[i] = this.values[i] - other.getValue(i);
-//        }
-//        return new Vector(result);
-//    }
-//
-//    /**
-//     * Умножает вектор на скаляр.
-//     *
-//     * @param scalar значение скаляра
-//     * @return новый вектор, умноженный на скаляр
-//     */
-//    public Vector multiply(double scalar) {
-//        double[] result = new double[n];
-//        for (int i = 0; i < n; i++) {
-//            result[i] = this.values[i] * scalar;
-//        }
-//        return new Vector(result);
-//    }
-//
-//    /**
-//     * Возвращает евклидову норму (длину) вектора.
-//     *
-//     * @return евклидова норма вектора
-//     */
-//    public double norm() {
-//        double sum = 0;
-//        for (double v : values) {
-//            sum += v * v;
-//        }
-//        return Math.sqrt(sum);
-//    }
-//
-//    /**
-//     * Возвращает минимальное значение вектора.
-//     *
-//     * @return минимальное значение вектора
-//     */
-//    public double min() {
-//        double minValue = values[0];
-//        for (double v : values) {
-//            if (v < minValue) {
-//                minValue = v;
-//            }
-//        }
-//        return minValue;
-//    }
-//
-//    /**
-//     * Возвращает строковое представление вектора.
-//     *
-//     * @return строковое представление вектора
-//     */
-//    @Override
-//    public String toString() {
-//        return Arrays.toString(values);
-//    }
-//}
-//
-//class Matrix {
-//    private int n;           // Количество строк
-//    private int m;           // Количество столбцов
-//    private double[][] values; // 2D массив для хранения элементов матрицы
-//
-//    /**
-//     * Конструктор для создания матрицы заданного размера.
-//     * Все элементы матрицы инициализируются нулем.
-//     *
-//     * @param n количество строк
-//     * @param m количество столбцов
-//     */
-//    public Matrix(int n, int m) {
-//        this.n = n;
-//        this.m = m;
-//        this.values = new double[n][m];
-//    }
-//
-//    /**
-//     * Конструктор для создания матрицы с заданными значениями.
-//     *
-//     * @param values 2D массив значений матрицы
-//     */
-//    public Matrix(double[][] values) {
-//        this.n = values.length;
-//        this.m = values[0].length;
-//        this.values = new double[n][m];
-//        for (int i = 0; i < n; i++) {
-//            this.values[i] = Arrays.copyOf(values[i], m);
-//        }
-//    }
-//
-//    public Matrix(int size) {
-//        this.values = new double[size][size];
-//        for (int i = 0; i < size; i++) {
-//            this.values[i][i] = 1;
-//        }
-//    }
-//
-//    /**
-//     * Получает значение элемента матрицы по указанным индексам.
-//     *
-//     * @param i индекс строки
-//     * @param j индекс столбца
-//     * @return значение элемента матрицы
-//     */
-//    public double getValue(int i, int j) {
-//        if (i < 0 || i >= n || j < 0 || j >= m) {
-//            throw new IndexOutOfBoundsException("Индексы вне диапазона.");
-//        }
-//        return values[i][j];
-//    }
-//
-//    /**
-//     * Устанавливает значение элемента матрицы по указанным индексам.
-//     *
-//     * @param i     индекс строки
-//     * @param j     индекс столбца
-//     * @param value новое значение элемента
-//     */
-//    public void setValue(int i, int j, double value) {
-//        if (i < 0 || i >= n || j < 0 || j >= m) {
-//            throw new IndexOutOfBoundsException("Индексы вне диапазона.");
-//        }
-//        values[i][j] = value;
-//    }
-//
-//    /**
-//     * Возвращает количество строк в матрице.
-//     *
-//     * @return количество строк
-//     */
-//    public int getNumRows() {
-//        return n;
-//    }
-//
-//    /**
-//     * Возвращает количество столбцов в матрице.
-//     *
-//     * @return количество столбцов
-//     */
-//    public int getNumCols() {
-//        return m;
-//    }
-//
-//    /**
-//     * Транспонирует текущую матрицу.
-//     *
-//     * @return транспонированная матрица
-//     */
-//    public Matrix transpose() {
-//        double[][] transposed = new double[m][n];
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < m; j++) {
-//                transposed[j][i] = values[i][j];
-//            }
-//        }
-//        return new Matrix(transposed);
-//    }
-//
-//    public Matrix inverse() {
-//        // Check that the matrix is square
-//        if (n != m) {
-//            throw new IllegalArgumentException("Matrix must be square.");
-//        }
-//
-//
-//        double[][] augmentedMatrix = new double[n][2 * n];
-//
-//        // Create augmented matrix [A | I]
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < n; j++) {
-//                augmentedMatrix[i][j] = values[i][j];
-//            }
-//            augmentedMatrix[i][i + n] = 1; // Fill identity matrix
-//        }
-//
-//        // Forward elimination
-//        for (int i = 0; i < n; i++) {
-//            // Find the maximum element in the current column
-//            double maxEl = Math.abs(augmentedMatrix[i][i]);
-//            int maxRow = i;
-//            for (int k = i + 1; k < n; k++) {
-//                if (Math.abs(augmentedMatrix[k][i]) > maxEl) {
-//                    maxEl = Math.abs(augmentedMatrix[k][i]);
-//                    maxRow = k;
-//                }
-//            }
-//
-//            // Swap maximum row with current row
-//            double[] temp = augmentedMatrix[maxRow];
-//            augmentedMatrix[maxRow] = augmentedMatrix[i];
-//            augmentedMatrix[i] = temp;
-//
-//            // Convert to upper triangular form
-//            for (int k = i + 1; k < n; k++) {
-//                double factor = augmentedMatrix[k][i] / augmentedMatrix[i][i];
-//                for (int j = 0; j < 2 * n; j++) {
-//                    augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
-//                }
-//            }
-//        }
-//
-//        // Backward elimination
-//        for (int i = n - 1; i >= 0; i--) {
-//            // Normalize the current row
-//            double leadingElement = augmentedMatrix[i][i];
-//            for (int j = 0; j < 2 * n; j++) {
-//                augmentedMatrix[i][j] /= leadingElement;
-//            }
-//
-//            // Eliminate above rows
-//            for (int k = i - 1; k >= 0; k--) {
-//                double factor = augmentedMatrix[k][i];
-//                for (int j = 0; j < 2 * n; j++) {
-//                    augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
-//                }
-//            }
-//        }
-//
-//        // Extract the inverse matrix from the augmented matrix
-//        double[][] inverseMatrix = new double[n][n];
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < n; j++) {
-//                inverseMatrix[i][j] = augmentedMatrix[i][j + n];
-//            }
-//        }
-//
-//        // Return the inverse as a new Matrix object
-//        return new Matrix(inverseMatrix);
-//    }
-//
-//    /**
-//     * Складывает текущую матрицу с другой матрицей.
-//     *
-//     * @param other другая матрица
-//     * @return результат сложения в виде новой матрицы
-//     */
-//    public Matrix add(Matrix other) {
-//        if (n != other.getNumRows() || m != other.getNumCols()) {
-//            throw new IllegalArgumentException("Размеры матриц должны совпадать.");
-//        }
-//        double[][] result = new double[n][m];
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < m; j++) {
-//                result[i][j] = this.values[i][j] + other.getValue(i, j);
-//            }
-//        }
-//        return new Matrix(result);
-//    }
-//
-//    /**
-//     * Вычитает другую матрицу из текущей.
-//     *
-//     * @param other другая матрица
-//     * @return результат вычитания в виде новой матрицы
-//     */
-//    public Matrix subtract(Matrix other) {
-//        if (n != other.getNumRows() || m != other.getNumCols()) {
-//            throw new IllegalArgumentException("Размеры матриц должны совпадать.");
-//        }
-//        double[][] result = new double[n][m];
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < m; j++) {
-//                result[i][j] = this.values[i][j] - other.getValue(i, j);
-//            }
-//        }
-//        return new Matrix(result);
-//    }
-//
-//    /**
-//     * Умножает текущую матрицу на скаляр.
-//     *
-//     * @param scalar значение скаляра
-//     * @return новая матрица, умноженная на скаляр
-//     */
-//    public Matrix multiply(double scalar) {
-//        double[][] result = new double[n][m];
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < m; j++) {
-//                result[i][j] = this.values[i][j] * scalar;
-//            }
-//        }
-//        return new Matrix(result);
-//    }
-//
-//    /**
-//     * Умножает текущую матрицу на другой вектор.
-//     *
-//     * @param vector другой вектор
-//     * @return новый вектор, являющийся результатом умножения
-//     */
-//    public Vector multiply(Vector vector) {
-//        if (m != vector.getSize()) {
-//            throw new IllegalArgumentException("Число столбцов матрицы должно совпадать с размером вектора.");
-//        }
-//        double[] result = new double[n];
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < m; j++) {
-//                result[i] += this.values[i][j] * vector.getValue(j);
-//            }
-//        }
-//        return new Vector(result);
-//    }
-//
-//    /**
-//     * Умножает текущую матрицу на другую матрицу.
-//     *
-//     * @param other другая матрица
-//     * @return новая матрица, являющаяся результатом умножения
-//     */
-//    public Matrix multiply(Matrix other) {
-//        if (m != other.getNumRows()) {
-//            throw new IllegalArgumentException("Число столбцов первой матрицы должно совпадать с числом строк второй матрицы.");
-//        }
-//        double[][] result = new double[n][other.getNumCols()];
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < other.getNumCols(); j++) {
-//                for (int k = 0; k < m; k++) {
-//                    result[i][j] += this.values[i][k] * other.getValue(k, j);
-//                }
-//            }
-//        }
-//        return new Matrix(result);
-//    }
-//
-//    /**
-//     * Возвращает строковое представление матрицы.
-//     *
-//     * @return строковое представление матрицы
-//     */
-//    @Override
-//    public String toString() {
-//        StringBuilder sb = new StringBuilder();
-//        for (double[] row : values) {
-//            sb.append(Arrays.toString(row)).append("\n");
-//        }
-//        return sb.toString();
-//    }
-//}
+    public double[] toArray() {
+        return Arrays.copyOf(values, values.length);
+    }
+
+    @Override
+    public String toString() {
+        return Arrays.toString(values);
+    }
+}
