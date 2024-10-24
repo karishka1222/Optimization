@@ -1,7 +1,9 @@
+package Assignment2;
+
 import java.util.Arrays;
 import java.util.Scanner;
 
-public class InteriorPointMethod {
+public class InteriorPointAlgorithm {
 
     public static void main(String[] args) {
         // Коэффициенты целевой функции: Максимизировать 9x1 + 10x2 + 16x3
