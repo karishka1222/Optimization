@@ -1,78 +1,73 @@
-package Assignment2;
-
+package Assignment3;
 import java.util.Arrays;
 import java.util.Scanner;
 
-public class InteriorPointAlgorithm {
-
+public class TransportationProblem {
     public static void main(String[] args) {
-        // Коэффициенты целевой функции: Максимизировать 9x1 + 10x2 + 16x3
-        double[] c = {9, 10, 16, 0, 0, 0}; // Коэффициенты при дополнительных переменных равны нулю
+        Scanner sc = new Scanner(System.in);
 
-        // Коэффициенты ограничений (включая дополнительные переменные)
-        double[][] A = {
-                {18, 15, 12, 1, 0, 0}, // Первое ограничение
-                {6, 4, 8, 0, 1, 0},    // Второе ограничение
-                {5, 3, 3, 0, 0, 1}     // Третье ограничение
-        };
+        //example of input:
+        /*
+        3
+        4 3 2
+        3
+        6 3 5
+        4 20 7
+        3 4 3
+        4 3 2
+        */
+        // input of a vector of coefficients of supply - S.
+        int number_Of_S_Coefficients = sc.nextInt();// по-идее у нас всегда 3
+        double[] S_Coefficients = new double[number_Of_S_Coefficients];
+        for (int i = 0; i < number_Of_S_Coefficients; i++) {
+            S_Coefficients[i] = sc.nextDouble();
+        }
 
-        // Правая часть ограничений
-        double[] b = {360, 192, 180};
 
-        // Начальное решение: (x1, x2, x3, x4, x5, x6) = (1, 1, 1, 315, 174, 169)
-        double[] x = {1, 1, 1, 315, 174, 169};
-
-//        Scanner inputData = new Scanner(System.in);
-//        String action = inputData.nextLine();
-//
-//        if (action.equals("min")){
-//            //коэффициенты функции нашей делаем противоположными по знаку, дальше всё также
-//        }
-
-        double alpha = 0.5;
-        int iteration = 1;
-
-        System.out.println("For alpha = " + alpha);
-
-        while (true) {
-            double[] v = Arrays.copyOf(x, x.length); // Сохранить копию x
-            Matrix D = Matrix.diag(x);               // Создать диагональную матрицу из x
-            Matrix AA = new Matrix(A).dot(D); // A * D
-            Vector cc = D.dot(new Vector(c));         // D * c
-            Matrix I = Matrix.eye(c.length);          // Единичная матрица
-            Matrix F = AA.dot(AA.transpose());        // AA * AA^T
-            Matrix FI = F.inverse();                  // Обратная матрица F
-            Matrix H = AA.transpose().dot(FI);        // AA^T * FI
-            Matrix P = I.subtract(H.dot(AA));         // P = I - H * AA
-            Vector cp = P.dot(cc);                    // cp = P * cc
-
-            double nu = Math.abs(cp.min());           // Вычислить nu
-            if (nu == 0) {
-                System.out.println("Warning: nu is zero, cp: " + cp);
-                break; // Обработка случая с нулевым nu
-            }
-
-            // y = 1 + (alpha / nu) * cp
-            Vector y = Vector.ones(cp.size()).add(cp.multiply(alpha / nu));
-            Vector yy = D.dot(y);                      // yy = D * y
-            x = yy.toArray();                          // Обновить x
-
-            if (iteration <= 4) {
-                System.out.println("In iteration " + iteration + " we have x = " + Arrays.toString(x) + "\n");
-            }
-            iteration++;
-
-            // Условие завершения
-            if (yy.subtract(new Vector(v)).norm(2) < 0.0001) {
-                break;
+        // input of a matrix of coefficients of costs - C
+        int number_Of_D_Coefficients = sc.nextInt();// по-идее у нас всегда 4
+        double[][] C_Coefficients = new double[number_Of_S_Coefficients][number_Of_D_Coefficients];
+        for (int i = 0; i < number_Of_S_Coefficients; i++) {
+            for (int j = 0; j < number_Of_D_Coefficients; j++) {
+                C_Coefficients[i][j] = sc.nextDouble();
             }
         }
 
-        // results
-        System.out.println("In the last iteration we have x = " + Arrays.toString(x) + "\n");
-        System.out.println("Objective function value: " + (9 * x[0] + 10 * x[1] + 16 * x[2]));
+
+        // input of a vector of coefficients of demand - D
+        double[] D_Coefficients = new double[number_Of_D_Coefficients];
+        for (int i = 0; i < number_Of_D_Coefficients; i++) {
+            D_Coefficients[i] = sc.nextDouble();
+        }
+
+
+        // creation of Vectors with Supply coefficients and Matrix with Coefficients_Of_Cost
+        Vector Supply = new Vector(S_Coefficients);
+        Vector Destination = new Vector(D_Coefficients);
+        Matrix Coefficients_Of_Costs = new Matrix(C_Coefficients);
+
+        North_West_Corner_Method(Supply, Destination, Coefficients_Of_Costs);
+
+        Vogel_s_Approximation_Method(Supply, Destination, Coefficients_Of_Costs);
+
+        Russell_s_Approximation_Method(Supply, Destination, Coefficients_Of_Costs);
+    }
+
+
+
+    public static void North_West_Corner_Method(Vector Supply, Vector Destination, Matrix Coefficients_Of_Costs) {
+
+    }
+
+    public static void Vogel_s_Approximation_Method(Vector Supply, Vector Destination, Matrix Coefficients_Of_Costs){
+
+    }
+
+    public static void Russell_s_Approximation_Method(Vector Supply, Vector Destination, Matrix Coefficients_Of_Costs){
+
     }
 }
+
 
 // class Matrix
 class Matrix {
