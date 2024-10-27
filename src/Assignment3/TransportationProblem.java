@@ -51,6 +51,22 @@ public class TransportationProblem {
         Vogel_s_Approximation_Method(Supply, Destination, Coefficients_Of_Costs);
 
         Russell_s_Approximation_Method(Supply, Destination, Coefficients_Of_Costs);
+
+
+        //New methods examples:
+
+        // возвращает разность двух наименьших в строке
+        double a = Matrix.sub_two_min_Elements_From_Row(1, Coefficients_Of_Costs);
+        // возвращает max в строке
+        double b = Matrix.max_Elements_From_Row(1, Coefficients_Of_Costs);
+
+
+        // возвращает разность двух наименьших в столбце
+        double c = Matrix.sub_two_min_Elements_From_Column(0, Coefficients_Of_Costs);
+        // возвращает max в столбце
+        double d = Matrix.max_Elements_From_Column(2, Coefficients_Of_Costs);
+
+        System.out.println("a = " + a + ", b = " + b + ", c = " + c + ", d = " + d);
     }
 
 
@@ -66,14 +82,15 @@ public class TransportationProblem {
     public static void Russell_s_Approximation_Method(Vector Supply, Vector Destination, Matrix Coefficients_Of_Costs){
 
     }
+
 }
 
 
 // class Matrix
 class Matrix {
-    private int rows;
-    private int cols;
-    private double[][] values;
+    private static int rows;
+    private static int cols;
+    private static double[][] values;
 
     public Matrix(int rows, int cols) {
         this.rows = rows;
@@ -94,18 +111,54 @@ class Matrix {
         return values[i][j];
     }
 
+    public static double[] getRow(int i) {return Arrays.copyOf(values[i], rows);}
+
+    public static double[] getColumn(int i) {
+        double[] column = new double[rows];
+        for (int row = 0; row < rows; row++) {
+            column[row] = values[row][i];
+        }
+        return column;
+    }
+
     public void setValue(int i, int j, double value) {
         values[i][j] = value;
     }
 
     // number of row
-    public int getNumRows() {
+    public static int getNumRows() {
         return rows;
     }
-
     // number of column
-    public int getNumCols() {
+    public static int getNumCols() {
         return cols;
+    }
+
+    public static double sub_two_min_Elements_From_Row(int row, Matrix matrix) {
+        double[] Row = getRow(row);
+        Arrays.sort(Row);
+        return Math.abs(Row[1]-Row[0]);
+    }
+
+    public static double max_Elements_From_Row(int row, Matrix matrix) {
+        int n = getNumRows();
+        double[] Row = getRow(row);
+        Arrays.sort(Row);
+        return Row[n-1];
+    }
+
+
+    public static double sub_two_min_Elements_From_Column(int column, Matrix matrix) {
+        double[] Column = getColumn(column);
+        Arrays.sort(Column);
+        return Math.abs(Column[1]-Column[0]);
+    }
+
+    public static double max_Elements_From_Column(int column, Matrix matrix) {
+        int n = getNumCols();
+        double[] Column = getColumn(column);
+        Arrays.sort(Column);
+        return Column[n-1];
     }
 
     // T for Matrix
