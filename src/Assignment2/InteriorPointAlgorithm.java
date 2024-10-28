@@ -30,12 +30,15 @@ public class InteriorPointAlgorithm {
 //            //коэффициенты функции нашей делаем противоположными по знаку, дальше всё также
 //        }
 
+        // Result of the algorithm for alpha = 0.5
         algorithm(0.5, x, A, c, b);
         System.out.println();
+        // Result of the algorithm for alpha = 0.9
         algorithm(0.9, x, A, c, b);
 
     }
 
+    // Method that represents all interior point algorithm
     public static void algorithm(double alpha, double[] x, double[][] A, double[] c, double[] b) {
         int iteration = 1;
 
