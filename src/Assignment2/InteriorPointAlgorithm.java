@@ -16,6 +16,7 @@ public class InteriorPointAlgorithm {
                 {5, 3, 3, 0, 0, 1}     // Третье ограничение
         };
 
+
         // Правая часть ограничений
         double[] b = {360, 192, 180};
 
@@ -29,7 +30,13 @@ public class InteriorPointAlgorithm {
 //            //коэффициенты функции нашей делаем противоположными по знаку, дальше всё также
 //        }
 
-        double alpha = 0.5;
+        algorithm(0.5, x, A, c, b);
+        System.out.println();
+        algorithm(0.9, x, A, c, b);
+
+    }
+
+    public static void algorithm(double alpha, double[] x, double[][] A, double[] c, double[] b) {
         int iteration = 1;
 
         System.out.println("For alpha = " + alpha);
