@@ -5,11 +5,9 @@ min
 3
 -2 2 -6
 3
-3
 2 1 -2
 1 2 4
 1 -1 2
-3
 24 23 10
 6
 
@@ -51,9 +49,11 @@ Optimal solution:
 x1 = 0,00
 x2 = 0,75
 x3 = 5,38
+Optimal value of the objective function z = -30,75
 
 Answer:
 x1 = 0,00
 x2 = 0,75
 x3 = 5,38
+z = -30,75
 

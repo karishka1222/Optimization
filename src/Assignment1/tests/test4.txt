@@ -5,11 +5,9 @@ max
 3
 9 10 16
 3
-3
 18 15 12
 6 4 8
 5 3 3
-3
 360 192 180
 6
 
@@ -51,9 +49,11 @@ Optimal solution:
 x1 = 0,00
 x2 = 8,00
 x3 = 20,00
+Optimal value of the objective function z = 400,00
 
 Answer:
 x1 = 0,00
 x2 = 8,00
 x3 = 20,00
+z = 400,00
 
