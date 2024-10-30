@@ -1,0 +1,36 @@
+Lecture 6 page 6
+
+Input:
+3
+1 2 0
+1
+1 1 1
+8
+2 2 4
+
+Output:
+For alpha = 0.5
+In iteration 1 we have x = [2.5, 3.5, 2.0]
+
+In iteration 2 we have x = [2.080792682926829, 4.91920731707317, 1.0]
+
+In iteration 3 we have x = [1.1283097928775867, 6.37169020712241, 0.5]
+
+In iteration 4 we have x = [0.5641548964387934, 7.162283832233392, 0.2735612713278105]
+
+In the last iteration we have x = [3.443328225334432E-5, 7.99994835031874, 1.7216641125715288E-5]
+
+Objective function value: 15.999931133919734
+
+For alpha = 0.9
+In iteration 1 we have x = [2.9, 4.7, 0.3999999999999999]
+
+In iteration 2 we have x = [0.2899999999999999, 7.429077314967689, 0.2809226850323128]
+
+In iteration 3 we have x = [0.15557826466073252, 7.816329466836039, 0.028092268503231276]
+
+In iteration 4 we have x = [0.015557826466073248, 7.965482387226317, 0.018959786307431895]
+
+In the last iteration we have x = [4.070848252785786E-6, 7.999990758133695, 5.171006364131744E-6]
+
+Objective function value: 15.999985587115642

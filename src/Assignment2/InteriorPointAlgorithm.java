@@ -7,21 +7,20 @@ public class InteriorPointAlgorithm {
 
     public static void main(String[] args) {
         // Коэффициенты целевой функции: Максимизировать 9x1 + 10x2 + 16x3
-        double[] c = {9, 10, 16, 0, 0, 0}; // Коэффициенты при дополнительных переменных равны нулю
+        double[] c = {1,2,0}; // Коэффициенты при дополнительных переменных равны нулю
 
         // Коэффициенты ограничений (включая дополнительные переменные)
         double[][] A = {
-                {18, 15, 12, 1, 0, 0}, // Первое ограничение
-                {6, 4, 8, 0, 1, 0},    // Второе ограничение
-                {5, 3, 3, 0, 0, 1}     // Третье ограничение
+                {1,1,1}, // Первое ограничение
+                   // Третье ограничение
         };
 
 
         // Правая часть ограничений
-        double[] b = {360, 192, 180};
+        double[] b = {8};
 
         // Начальное решение: (x1, x2, x3, x4, x5, x6) = (1, 1, 1, 315, 174, 169)
-        double[] x = {1, 1, 1, 315, 174, 169};
+        double[] x = {2,2,4};
 
 //        Scanner inputData = new Scanner(System.in);
 //        String action = inputData.nextLine();
@@ -80,7 +79,7 @@ public class InteriorPointAlgorithm {
 
         // results
         System.out.println("In the last iteration we have x = " + Arrays.toString(x) + "\n");
-        System.out.println("Objective function value: " + (9 * x[0] + 10 * x[1] + 16 * x[2]));
+        System.out.println("Objective function value: " + (1 * x[0] + 2 * x[1] + 0 * x[2]));
     }
 }
 
