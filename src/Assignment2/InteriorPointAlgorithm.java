@@ -51,11 +51,13 @@ public class InteriorPointAlgorithm {
             x[i] = scanner.nextDouble();
         }
 
+        int precision = scanner.nextInt();
+
         // Result of the algorithm for alpha = 0.5
-        algorithm(0.5, x, A, c, b);
+        algorithm(0.5, x, A, c, b, precision);
         System.out.println();
         // Result of the algorithm for alpha = 0.9
-        algorithm(0.9, x, A, c, b);
+        algorithm(0.9, x, A, c, b, precision);
 
     }
 
@@ -68,7 +70,7 @@ public class InteriorPointAlgorithm {
      * @param c     the vector representing the objective function's coefficients
      * @param b     the vector representing the right-hand side of the constraints
      */
-    public static void algorithm(double alpha, double[] x, double[][] A, double[] c, double[] b) {
+    public static void algorithm(double alpha, double[] x, double[][] A, double[] c, double[] b, int precision) {
         int iteration = 1;
 
         System.out.println("For alpha = " + alpha);
@@ -96,15 +98,19 @@ public class InteriorPointAlgorithm {
             Vector yy = D.dot(y);                      // yy = D * y
             x = yy.toArray();                          // Update x
 
-            if (iteration <= 4) {
-                System.out.println("In iteration " + iteration + " we have x = " + Arrays.toString(x) + "\n");
-            }
+//            if (iteration <= 4) {
+//                System.out.println("In iteration " + iteration + " we have x = " + Arrays.toString(x) + "\n");
+//            }
             iteration++;
 
             // Условие завершения
             if (yy.subtract(new Vector(v)).norm(2) < 0.0001) {
                 break;
             }
+        }
+        //precise the numbers
+        for (int i = 0; i < x.length; i++) {
+            x[i] = (Math.round(x[i]*precision)*1.0)/precision;
         }
 
         // Objective function value
@@ -114,8 +120,11 @@ public class InteriorPointAlgorithm {
         }
 
         // Results
-        System.out.println("In the last iteration we have x = " + Arrays.toString(x) + "\n");
-        System.out.println("Objective function value: " + obj);
+        System.out.print("In the last iteration we have x = [");
+        for(int i = 0; i<x.length; i++){
+            System.out.printf("%s%s", String.format("%."+precision+"f", x[i]), i+1==x.length? "]\n":", ");
+        }
+        System.out.printf("Objective function value: %s\n", String.format("%."+precision+"f", obj));
     }
 }
 
