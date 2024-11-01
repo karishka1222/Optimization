@@ -1,4 +1,5 @@
 package Assignment3;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -31,16 +32,16 @@ public class TransportationProblem {
         // 1. Supply Vector S
         double[] supplyArr = new double[inputList.getFirst().length];
         for (int i = 0; i < supplyArr.length; i++) {
-            supplyArr[0] = Double.parseDouble(inputList.getFirst()[i]);
+            supplyArr[i] = Double.parseDouble(inputList.getFirst()[i]);
         }
         Vector Supply = new Vector(supplyArr);
 
         //2. demand & destination Vector D
         double[] destArr = new double[inputList.getLast().length];
         for (int i = 0; i < destArr.length; i++) {
-            destArr[0] = Double.parseDouble(inputList.getLast()[i]);
+            destArr[i] = Double.parseDouble(inputList.getLast()[i]);
         }
-        Vector Destination = new Vector(destArr);
+        Vector Demand = new Vector(destArr);
 
         //3. Cost Matrix C
         double[][] costArr = new double[inputList.getFirst().length][inputList.size()-2];
@@ -55,32 +56,35 @@ public class TransportationProblem {
         Matrix Coefficients_Of_Costs = new Matrix(costArr);
 
         // demonstrate the input:
+        System.out.println("Initial table:");
         printTable(inputList.getFirst(), costs, inputList.getLast());
 
+        System.out.println();
+        System.out.println("Result of North-West Corner Method:");
+        North_West_Corner_Method(Supply, Demand, Coefficients_Of_Costs);
 
+        System.out.println();
+        System.out.println("Result of Vogel's Approximation Method:");
+        Vogel_s_Approximation_Method(Supply, Demand, Coefficients_Of_Costs);
 
-        North_West_Corner_Method(Supply, Destination, Coefficients_Of_Costs);
-
-        Vogel_s_Approximation_Method(Supply, Destination, Coefficients_Of_Costs);
-
-        Russell_s_Approximation_Method(Supply, Destination, Coefficients_Of_Costs);
-
-
+        System.out.println();
+        System.out.println("Result of Russell's Approximation Method:");
+        Russell_s_Approximation_Method(Supply, Demand, Coefficients_Of_Costs);
 
         //New methods examples:
 
         // возвращает разность двух наименьших в строке
-        double a = Matrix.sub_two_min_Elements_From_Row(1, Coefficients_Of_Costs);
+//        double a = Matrix.sub_two_min_Elements_From_Row(1, Coefficients_Of_Costs);
         // возвращает max в строке
-        double b = Matrix.max_Elements_From_Row(1, Coefficients_Of_Costs);
+//        double b = Matrix.max_Elements_From_Row(1, Coefficients_Of_Costs);
 
 
         // возвращает разность двух наименьших в столбце
-        double c = Matrix.sub_two_min_Elements_From_Column(0, Coefficients_Of_Costs);
+//        double c = Matrix.sub_two_min_Elements_From_Column(0, Coefficients_Of_Costs);
         // возвращает max в столбце
-        double d = Matrix.max_Elements_From_Column(2, Coefficients_Of_Costs);
+//        double d = Matrix.max_Elements_From_Column(2, Coefficients_Of_Costs);
 
-        System.out.println("a = " + a + ", b = " + b + ", c = " + c + ", d = " + d);
+//        System.out.println("a = " + a + ", b = " + b + ", c = " + c + ", d = " + d);
     }
 
     private static void printTable(String[] supply, String[][] costs, String[] demand) {
@@ -112,17 +116,60 @@ public class TransportationProblem {
         System.out.println();
     }
 
+    public static void North_West_Corner_Method(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs) {
+        int n = Coefficients_Of_Costs.getNumRows();
+        int m = Coefficients_Of_Costs.getNumCols();
+        // If method is not applicable
+        if (Supply.size() != n || Demand.size() != m) {
+            System.out.println("The method is not applicable!");
+            return;
+        }
+        // If method is not balanced
+        double sumSupply = Supply.getSumValues();
+        double sumDemand = Demand.getSumValues();
+        if (sumSupply != sumDemand) {
+            System.out.println("The problem is not balanced!");
+            return;
+        }
 
+        Matrix resultPath = new Matrix(n, m);
+        double result = 0;
+        int i = 0;
+        int j = 0;
+        String[][] resultsCost = new String[n][m];
+        String[] resultsSupply = new String[n];
+        String[] resultsDemand = new String[m];
 
-    public static void North_West_Corner_Method(Vector Supply, Vector Destination, Matrix Coefficients_Of_Costs) {
+        while (i < n && j < m) {
+            double currentValue = Math.min(Supply.get(i), Demand.get(j));
+            resultPath.setValue(i, j, currentValue);
+            result += currentValue * Coefficients_Of_Costs.getValue(i, j);
+            Supply.set(i, Supply.get(i) - currentValue);
+            Demand.set(j, Demand.get(j) - currentValue);
+            if (Supply.get(i) == 0) {
+                i++;
+            }
+            if (Demand.get(j) == 0) {
+                j++;
+            }
+        }
+        for (int k = 0; k < n; k++) {
+            for (int l = 0; l < m; l++) {
+                resultsCost[k][l] = DecimalFormat.getInstance().format(resultPath.getValue(k, l));
+                resultsDemand[l] = DecimalFormat.getInstance().format(Demand.get(l));
+            }
+            resultsSupply[k] = DecimalFormat.getInstance().format(Supply.get(k));
+        }
+        printTable(resultsSupply, resultsCost, resultsDemand);
+        System.out.println("Optimal path is " + result);
 
     }
 
-    public static void Vogel_s_Approximation_Method(Vector Supply, Vector Destination, Matrix Coefficients_Of_Costs){
+    public static void Vogel_s_Approximation_Method(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs){
 
     }
 
-    public static void Russell_s_Approximation_Method(Vector Supply, Vector Destination, Matrix Coefficients_Of_Costs){
+    public static void Russell_s_Approximation_Method(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs){
 
     }
 
@@ -131,14 +178,19 @@ public class TransportationProblem {
 
 // class Matrix
 class Matrix {
-    private static int rows;
-    private static int cols;
+    private int rows;
+    private int cols;
     private static double[][] values;
 
     public Matrix(int rows, int cols) {
         this.rows = rows;
         this.cols = cols;
         this.values = new double[rows][cols];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                this.values[i][j] = 0.0;
+            }
+        }
     }
 
     public Matrix(double[][] values) {
@@ -150,13 +202,15 @@ class Matrix {
         }
     }
 
+    public double[][] getValues() { return values; }
+
     public double getValue(int i, int j) {
         return values[i][j];
     }
 
-    public static double[] getRow(int i) {return Arrays.copyOf(values[i], rows);}
+    public double[] getRow(int i) {return Arrays.copyOf(values[i], rows);}
 
-    public static double[] getColumn(int i) {
+    public double[] getColumn(int i) {
         double[] column = new double[rows];
         for (int row = 0; row < rows; row++) {
             column[row] = values[row][i];
@@ -169,35 +223,34 @@ class Matrix {
     }
 
     // number of row
-    public static int getNumRows() {
+    public int getNumRows() {
         return rows;
     }
     // number of column
-    public static int getNumCols() {
+    public int getNumCols() {
         return cols;
     }
 
-    public static double sub_two_min_Elements_From_Row(int row, Matrix matrix) {
+    public double sub_two_min_Elements_From_Row(int row, Matrix matrix) {
         double[] Row = getRow(row);
         Arrays.sort(Row);
         return Math.abs(Row[1]-Row[0]);
     }
 
-    public static double max_Elements_From_Row(int row, Matrix matrix) {
+    public double max_Elements_From_Row(int row, Matrix matrix) {
         int n = getNumRows();
         double[] Row = getRow(row);
         Arrays.sort(Row);
         return Row[n-1];
     }
 
-
-    public static double sub_two_min_Elements_From_Column(int column, Matrix matrix) {
+    public double sub_two_min_Elements_From_Column(int column, Matrix matrix) {
         double[] Column = getColumn(column);
         Arrays.sort(Column);
         return Math.abs(Column[1]-Column[0]);
     }
 
-    public static double max_Elements_From_Column(int column, Matrix matrix) {
+    public double max_Elements_From_Column(int column, Matrix matrix) {
         int n = getNumCols();
         double[] Column = getColumn(column);
         Arrays.sort(Column);
@@ -354,6 +407,8 @@ class Vector {
         return values[index];
     }
 
+    public void set(int index, double value) { values[index] = value; }
+
     public int size() {
         return values.length;
     }
@@ -434,6 +489,14 @@ class Vector {
             result[i] = values[i] - other.get(i);
         }
         return new Vector(result);
+    }
+
+    public double getSumValues() {
+        double sum = 0.0;
+        for (double v : values) {
+            sum += v;
+        }
+        return sum;
     }
 
     public double[] toArray() {
