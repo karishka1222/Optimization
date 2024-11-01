@@ -43,7 +43,7 @@ public class TransportationProblem {
         Vector Destination = new Vector(destArr);
 
         //3. Cost Matrix C
-        double[][] costArr = new double[inputList.getFirst().length][inputList.size()];
+        double[][] costArr = new double[inputList.getFirst().length][inputList.size()-2];
         String[][] costs = new String[costArr.length][costArr[0].length];
         for (int row = 0; row < inputList.size()-2; row++) {
             String[] arr = inputList.get(row+1);
@@ -99,7 +99,7 @@ public class TransportationProblem {
         for (int i = 0; i < S; i++) {
             System.out.printf("Source %d", i + 1);
             for (int j = 0; j < D; j++) {
-                System.out.printf("%8s", costs[j][i]);
+                System.out.printf("%8s", costs[i][j]);
             }
             System.out.printf("%8s%n", supply[i]);
         }
