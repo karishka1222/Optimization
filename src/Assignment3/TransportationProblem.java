@@ -1,5 +1,7 @@
 package Assignment3;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Scanner;
 
 public class TransportationProblem {
@@ -8,49 +10,61 @@ public class TransportationProblem {
 
         //example of input:
         /*
-        3
-        4 3 2
-        3
-        6 3 5
-        4 20 7
-        3 4 3
-        4 3 2
+4 3 2
+6 3 5
+4 20 7
+3 4 3
+4 3 2
         */
-        // input of a vector of coefficients of supply - S.
-        int number_Of_S_Coefficients = sc.nextInt();// по-идее у нас всегда 3
-        double[] S_Coefficients = new double[number_Of_S_Coefficients];
-        for (int i = 0; i < number_Of_S_Coefficients; i++) {
-            S_Coefficients[i] = sc.nextDouble();
+        // input all data
+        ArrayList<String[]> inputList = new ArrayList<>();
+        // input supply vector
+        inputList.add(sc.nextLine().split(" "));
+        // input costs
+        for (int i = 0; i < inputList.getFirst().length; i++) {
+            inputList.add(sc.nextLine().split(" "));
         }
+        // input demands
+        inputList.add(sc.nextLine().split(" "));
 
+        // process input
+        // 1. Supply Vector S
+        double[] supplyArr = new double[inputList.getFirst().length];
+        for (int i = 0; i < supplyArr.length; i++) {
+            supplyArr[0] = Double.parseDouble(inputList.getFirst()[i]);
+        }
+        Vector Supply = new Vector(supplyArr);
 
-        // input of a matrix of coefficients of costs - C
-        int number_Of_D_Coefficients = sc.nextInt();// по-идее у нас всегда 4
-        double[][] C_Coefficients = new double[number_Of_S_Coefficients][number_Of_D_Coefficients];
-        for (int i = 0; i < number_Of_S_Coefficients; i++) {
-            for (int j = 0; j < number_Of_D_Coefficients; j++) {
-                C_Coefficients[i][j] = sc.nextDouble();
+        //2. demand & destination Vector D
+        double[] destArr = new double[inputList.getLast().length];
+        for (int i = 0; i < destArr.length; i++) {
+            destArr[0] = Double.parseDouble(inputList.getLast()[i]);
+        }
+        Vector Destination = new Vector(destArr);
+
+        //3. Cost Matrix C
+        double[][] costArr = new double[inputList.getFirst().length][inputList.size()];
+        String[][] costs = new String[costArr.length][costArr[0].length];
+        for (int row = 0; row < inputList.size()-2; row++) {
+            String[] arr = inputList.get(row+1);
+            for (int col = 0; col < arr.length; col++) {
+                costArr[row][col] = Double.parseDouble(arr[col]);
+                costs[row][col] = arr[col];
             }
         }
+        Matrix Coefficients_Of_Costs = new Matrix(costArr);
+
+        // demonstrate the input:
+        printTable(inputList.getFirst(), costs, inputList.getLast());
 
 
-        // input of a vector of coefficients of demand - D
-        double[] D_Coefficients = new double[number_Of_D_Coefficients];
-        for (int i = 0; i < number_Of_D_Coefficients; i++) {
-            D_Coefficients[i] = sc.nextDouble();
-        }
-
-
-        // creation of Vectors with Supply coefficients and Matrix with Coefficients_Of_Cost
-        Vector Supply = new Vector(S_Coefficients);
-        Vector Destination = new Vector(D_Coefficients);
-        Matrix Coefficients_Of_Costs = new Matrix(C_Coefficients);
 
         North_West_Corner_Method(Supply, Destination, Coefficients_Of_Costs);
 
         Vogel_s_Approximation_Method(Supply, Destination, Coefficients_Of_Costs);
 
         Russell_s_Approximation_Method(Supply, Destination, Coefficients_Of_Costs);
+
 
 
         //New methods examples:
@@ -67,6 +81,35 @@ public class TransportationProblem {
         double d = Matrix.max_Elements_From_Column(2, Coefficients_Of_Costs);
 
         System.out.println("a = " + a + ", b = " + b + ", c = " + c + ", d = " + d);
+    }
+
+    private static void printTable(String[] supply, String[][] costs, String[] demand) {
+        int S = supply.length;
+        int D = costs.length;
+
+        // Create the header
+        System.out.printf("%30s%n", "Destination");
+        System.out.printf("%8s", " "); // Empty top left cell
+        for (int i = 0; i < D; i++) {
+            System.out.printf("%8d", i + 1);
+        }
+        System.out.printf("%8s%n", "Supply");
+
+        // Print the cost rows
+        for (int i = 0; i < S; i++) {
+            System.out.printf("Source %d", i + 1);
+            for (int j = 0; j < D; j++) {
+                System.out.printf("%8s", costs[j][i]);
+            }
+            System.out.printf("%8s%n", supply[i]);
+        }
+
+        // Print the demand row
+        System.out.printf("%8s", "Demand");
+        for (String d : demand) {
+            System.out.printf("%8s", d);
+        }
+        System.out.println();
     }
 
 
