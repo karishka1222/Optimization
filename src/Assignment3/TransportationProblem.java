@@ -55,9 +55,20 @@ public class TransportationProblem {
         }
         Matrix Coefficients_Of_Costs = new Matrix(costArr);
 
+
         // demonstrate the input:
         System.out.println("Initial table:");
         printTable(inputList.getFirst(), costs, inputList.getLast());
+
+        if (!isApplicable(Supply, Demand, Coefficients_Of_Costs)) {
+            System.out.println("The method is not applicable!");
+            return;
+        }
+
+        if (!isBalanced(Supply, Demand)) {
+            System.out.println("The problem is not balanced!");
+            return;
+        }
 
         System.out.println();
         System.out.println("Result of North-West Corner Method:");
@@ -116,20 +127,37 @@ public class TransportationProblem {
         System.out.println();
     }
 
-    public static void North_West_Corner_Method(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs) {
-        int n = Coefficients_Of_Costs.getNumRows();
-        int m = Coefficients_Of_Costs.getNumCols();
-        // If method is not applicable
-        if (Supply.size() != n || Demand.size() != m) {
-            System.out.println("The method is not applicable!");
-            return;
+    public static boolean isApplicable(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs) {
+        if (Supply.size() != Coefficients_Of_Costs.getNumRows() || Demand.size() != Coefficients_Of_Costs.getNumCols()) {
+            return false;
         }
+        return true;
+    }
+
+    public static boolean isBalanced(Vector Supply, Vector Demand) {
         // If method is not balanced
         double sumSupply = Supply.getSumValues();
         double sumDemand = Demand.getSumValues();
         if (sumSupply != sumDemand) {
-            System.out.println("The problem is not balanced!");
-            return;
+            return false;
+        }
+        return true;
+    }
+
+    public static void North_West_Corner_Method(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs) {
+        int n = Coefficients_Of_Costs.getNumRows();
+        int m = Coefficients_Of_Costs.getNumCols();
+
+        // Create copies for Supply, Demand and Coefficients
+        Vector supplyCopy = new Vector(Supply.size());
+        supplyCopy.copy(Supply);
+        Vector demandCopy = new Vector(Demand.size());
+        demandCopy.copy(Demand);
+        Matrix costsCopy = new Matrix(n, m);
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                costsCopy.setValue(i, j, Coefficients_Of_Costs.getValue(i, j));
+            }
         }
 
         Matrix resultPath = new Matrix(n, m);
@@ -141,32 +169,216 @@ public class TransportationProblem {
         String[] resultsDemand = new String[m];
 
         while (i < n && j < m) {
-            double currentValue = Math.min(Supply.get(i), Demand.get(j));
+            double currentValue = Math.min(supplyCopy.get(i), supplyCopy.get(j));
             resultPath.setValue(i, j, currentValue);
-            result += currentValue * Coefficients_Of_Costs.getValue(i, j);
-            Supply.set(i, Supply.get(i) - currentValue);
-            Demand.set(j, Demand.get(j) - currentValue);
-            if (Supply.get(i) == 0) {
+            result += currentValue * costsCopy.getValue(i, j);
+            supplyCopy.set(i, supplyCopy.get(i) - currentValue);
+            demandCopy.set(j, demandCopy.get(j) - currentValue);
+            if (supplyCopy.get(i) == 0) {
                 i++;
             }
-            if (Demand.get(j) == 0) {
+            if (demandCopy.get(j) == 0) {
                 j++;
             }
         }
         for (int k = 0; k < n; k++) {
             for (int l = 0; l < m; l++) {
+                if (resultPath.getValue(k, l) == -1) {
+                    resultPath.setValue(k, l, 0);
+                }
                 resultsCost[k][l] = DecimalFormat.getInstance().format(resultPath.getValue(k, l));
-                resultsDemand[l] = DecimalFormat.getInstance().format(Demand.get(l));
+                resultsDemand[l] = DecimalFormat.getInstance().format(demandCopy.get(l));
             }
-            resultsSupply[k] = DecimalFormat.getInstance().format(Supply.get(k));
+            resultsSupply[k] = DecimalFormat.getInstance().format(supplyCopy.get(k));
         }
         printTable(resultsSupply, resultsCost, resultsDemand);
-        System.out.println("Optimal path is " + result);
+        System.out.println("Optimal path is " + DecimalFormat.getInstance().format(result));
 
     }
 
     public static void Vogel_s_Approximation_Method(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs){
+        int n = Coefficients_Of_Costs.getNumRows();
+        int m = Coefficients_Of_Costs.getNumCols();
 
+        // Create copies for Supply, Demand and Coefficients
+        Vector supplyCopy = new Vector(Supply.size());
+        supplyCopy.copy(Supply);
+        Vector demandCopy = new Vector(Demand.size());
+        demandCopy.copy(Demand);
+        Matrix costsCopy = new Matrix(n, m);
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                costsCopy.setValue(i, j, Coefficients_Of_Costs.getValue(i, j));
+            }
+        }
+//        for (int i = 0; i < n; i++) {
+//            for (int j = 0; j < m; j++) {
+//                System.out.print(costsCopy.getValue(i, j) + " ");
+//            }
+//            System.out.println();
+//        }
+
+        // To fix result table and optimal value
+        Matrix resultPath = new Matrix(n, m);
+        double result = 0;
+        String[][] resultsCost = new String[n][m];
+        String[] resultsSupply = new String[n];
+        String[] resultsDemand = new String[m];
+
+//        int step= 0;
+        while (true) {
+//            step++;
+//            System.out.println("Iteration " + step);
+            // Searching the difference between two minimal elements in rows and columns
+            double[] differenceRows = new double[supplyCopy.size()];
+            double[] differenceCols = new double[demandCopy.size()];
+            boolean notEnd = false;
+            for (int i = 0; i < n; i++) {
+                differenceRows[i] = costsCopy.sub_two_min_Elements_From_Row(i);
+                if (differenceRows[i] != -1) {
+                    notEnd = true;
+                }
+            }
+            for (int i = 0; i < m; i++) {
+                differenceCols[i] = costsCopy.sub_two_min_Elements_From_Column(i);
+                if (differenceCols[i] != -1) {
+                    notEnd = true;
+                }
+            }
+//            System.out.println("Difference row:");
+//            for (int i = 0; i < differenceRows.length; i++) {
+//                System.out.print(differenceRows[i] + " ");
+//            }
+//            System.out.println();
+//            System.out.println("Difference column:");
+//            for (int i = 0; i < differenceCols.length; i++) {
+//                System.out.print(differenceCols[i] + " ");
+//            }
+//            System.out.println();
+//            System.out.println();
+            if (!notEnd) {
+                break;
+            }
+            // Searching maximum value in differences
+            double maxElementInRow = -1;
+            int maxIndexInRow = -1;
+            double maxElementInCol = -1;
+            int maxIndexInCol = -1;
+            for (int i = 0; i < differenceRows.length; i++) {
+                if (differenceRows[i] > maxElementInRow) {
+                    maxElementInRow = differenceRows[i];
+                    maxIndexInRow = i;
+                }
+            }
+            for (int i = 0; i < differenceCols.length; i++) {
+                if (differenceCols[i] > maxElementInCol) {
+                    maxElementInCol = differenceCols[i];
+                    maxIndexInCol = i;
+                }
+            }
+
+            // Determine what we choose, row or column
+            double maxElement;
+            boolean isCol = false;
+            if (maxElementInCol > maxElementInRow) {
+                maxElement = maxElementInCol;
+                isCol = true;
+            } else {
+                maxElement = maxElementInRow;
+            }
+
+            // Take values from this line
+            double[] currentLine;
+            if (isCol) {
+                currentLine = costsCopy.getColumn(maxIndexInCol);
+            } else {
+                currentLine = costsCopy.getRow(maxIndexInRow);
+            }
+
+            // Find minimum value from chosen line
+            double minElementInLine = Integer.MAX_VALUE;
+            int miniIndexLine = -1;
+            for (int i = 0; i < currentLine.length; i++) {
+                if (minElementInLine > currentLine[i]) {
+                    miniIndexLine = i;
+                    minElementInLine = currentLine[i];
+                }
+            }
+            if (isCol) {
+                double currentValue = Math.min(supplyCopy.get(miniIndexLine), demandCopy.get(maxIndexInCol));
+                resultPath.setValue(miniIndexLine, maxIndexInCol, currentValue);
+                result += currentValue * Coefficients_Of_Costs.getValue(miniIndexLine, maxIndexInCol);
+                supplyCopy.set(miniIndexLine, supplyCopy.get(miniIndexLine) - currentValue);
+                demandCopy.set(maxIndexInCol, demandCopy.get(maxIndexInCol) - currentValue);
+                if (supplyCopy.get(miniIndexLine) == 0) {
+                    for (int i = 0; i < m; i++) {
+                        costsCopy.setValue(miniIndexLine, i, Integer.MAX_VALUE);
+                    }
+                }
+                if (demandCopy.get(maxIndexInCol) == 0) {
+                    for (int i = 0; i < m; i++) {
+                        costsCopy.setValue(i, maxIndexInCol, Integer.MAX_VALUE);
+                    }
+                }
+            } else {
+                double currentValue = Math.min(supplyCopy.get(maxIndexInRow), demandCopy.get(miniIndexLine));
+                resultPath.setValue(maxIndexInRow, miniIndexLine, currentValue);
+                result += currentValue * costsCopy.getValue(maxIndexInRow, miniIndexLine);
+                supplyCopy.set(maxIndexInRow, supplyCopy.get(maxIndexInRow) - currentValue);
+                demandCopy.set(miniIndexLine, demandCopy.get(miniIndexLine) - currentValue);
+                if (supplyCopy.get(maxIndexInRow) == 0) {
+                    for (int i = 0; i < m; i++) {
+                        costsCopy.setValue(maxIndexInRow, i, Integer.MAX_VALUE);
+
+                    }
+                }
+                if (demandCopy.get(miniIndexLine) == 0) {
+                    for (int i = 0; i < m; i++) {
+                        costsCopy.setValue(i, miniIndexLine, Integer.MAX_VALUE);
+                    }
+                }
+            }
+//            System.out.println("Coeff main:");
+//            for (int i = 0; i < n; i++) {
+//                for (int j = 0; j < m; j++) {
+//                    System.out.print(costsCopy.getValue(i, j) + " ");
+//                }
+//                System.out.println();
+//            }
+//            System.out.println();
+//            System.out.println("Result costs:");
+//            for (int i = 0; i < n; i++) {
+//                for (int j = 0; j < m; j++) {
+//                    System.out.print(resultPath.getValue(i, j) + " ");
+//                }
+//                System.out.println();
+//            }
+//            System.out.println();
+//            System.out.println("Supply costs:");
+//            for (int i = 0; i < n; i++) {
+//                System.out.print(supplyCopy.get(i) + " ");
+//            }
+//            System.out.println();
+//            System.out.println("Demand costs:");
+//            for (int i = 0; i < m; i++) {
+//                System.out.print(demandCopy.get(i) + " ");
+//            }
+//            System.out.println();
+//            System.out.println();
+
+        }
+        for (int k = 0; k < n; k++) {
+            for (int l = 0; l < m; l++) {
+                if (resultPath.getValue(k, l) == -1) {
+                    resultPath.setValue(k, l, 0);
+                }
+                resultsCost[k][l] = DecimalFormat.getInstance().format(resultPath.getValue(k, l));
+                resultsDemand[l] = DecimalFormat.getInstance().format(demandCopy.get(l));
+            }
+            resultsSupply[k] = DecimalFormat.getInstance().format(supplyCopy.get(k));
+        }
+        printTable(resultsSupply, resultsCost, resultsDemand);
+        System.out.println("Optimal path is " + DecimalFormat.getInstance().format(result));
     }
 
     public static void Russell_s_Approximation_Method(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs){
@@ -180,7 +392,7 @@ public class TransportationProblem {
 class Matrix {
     private int rows;
     private int cols;
-    private static double[][] values;
+    private double[][] values;
 
     public Matrix(int rows, int cols) {
         this.rows = rows;
@@ -188,7 +400,7 @@ class Matrix {
         this.values = new double[rows][cols];
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                this.values[i][j] = 0.0;
+                this.values[i][j] = -1;
             }
         }
     }
@@ -208,12 +420,22 @@ class Matrix {
         return values[i][j];
     }
 
-    public double[] getRow(int i) {return Arrays.copyOf(values[i], rows);}
+    public double[] getRow(int i) {
+        return values[i];
+    }
 
     public double[] getColumn(int i) {
+//        System.out.println(i);
+//        for (int j = 0; j < rows; j++) {
+//            for (int k = 0; k < cols; k++) {
+//                System.out.print(values[j][k] + " ");
+//            }
+//            System.out.println();
+//        }
         double[] column = new double[rows];
         for (int row = 0; row < rows; row++) {
             column[row] = values[row][i];
+//            System.out.println(column[row]);
         }
         return column;
     }
@@ -231,10 +453,23 @@ class Matrix {
         return cols;
     }
 
-    public double sub_two_min_Elements_From_Row(int row, Matrix matrix) {
+    public double sub_two_min_Elements_From_Row(int row) {
         double[] Row = getRow(row);
-        Arrays.sort(Row);
-        return Math.abs(Row[1]-Row[0]);
+        double[] rowLine = new double[Row.length];
+        for (int i = 0; i < Row.length; i++) {
+            rowLine[i] = Row[i];
+        }
+        Arrays.sort(rowLine);
+        if (rowLine[0] == Integer.MAX_VALUE && rowLine[1] == Integer.MAX_VALUE) {
+            return -1;
+        }
+        if (rowLine[1] == Integer.MAX_VALUE) {
+            return rowLine[0];
+        }
+        if (rowLine[0] == Integer.MAX_VALUE) {
+            return rowLine[1];
+        }
+        return Math.abs(rowLine[1]-rowLine[0]);
     }
 
     public double max_Elements_From_Row(int row, Matrix matrix) {
@@ -244,10 +479,29 @@ class Matrix {
         return Row[n-1];
     }
 
-    public double sub_two_min_Elements_From_Column(int column, Matrix matrix) {
+    public double sub_two_min_Elements_From_Column(int column) {
         double[] Column = getColumn(column);
-        Arrays.sort(Column);
-        return Math.abs(Column[1]-Column[0]);
+        double[] columnLine = new double[Column.length];
+        for (int i = 0; i < Column.length; i++) {
+            columnLine[i] = Column[i];
+        }
+        Arrays.sort(columnLine);
+//        for (int i = 0; i < Column.length; i++) {
+//            System.out.print(columnLine[i] + " ");
+//        }
+//        System.out.println();
+        if (columnLine[0] == Integer.MAX_VALUE && columnLine[1] == Integer.MAX_VALUE) {
+            return -1;
+        }
+        if (columnLine[1] == Integer.MAX_VALUE) {
+            return columnLine[0];
+        }
+        if (columnLine[0] == Integer.MAX_VALUE) {
+            return columnLine[1];
+        }
+
+//        System.out.println(columnLine[0] + " " + columnLine[1]);
+        return Math.abs(columnLine[1]-columnLine[0]);
     }
 
     public double max_Elements_From_Column(int column, Matrix matrix) {
@@ -399,6 +653,8 @@ class Matrix {
 class Vector {
     private double[] values;
 
+    public Vector(int n) { this.values = new double[n]; }
+
     public Vector(double[] values) {
         this.values = Arrays.copyOf(values, values.length);
     }
@@ -413,8 +669,10 @@ class Vector {
         return values.length;
     }
 
-    public Vector copy() {
-        return new Vector(Arrays.copyOf(values, values.length));
+    public void copy(Vector vector) {
+        for (int i = 0; i < vector.size(); i++) {
+            values[i] = vector.get(i);
+        }
     }
 
     // MUX
