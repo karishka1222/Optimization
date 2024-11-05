@@ -316,7 +316,7 @@ public class TransportationProblem {
                     }
                 }
                 if (demandCopy.get(maxIndexInCol) == 0) {
-                    for (int i = 0; i < m; i++) {
+                    for (int i = 0; i < n; i++) {
                         costsCopy.setValue(i, maxIndexInCol, Integer.MAX_VALUE);
                     }
                 }
@@ -327,13 +327,13 @@ public class TransportationProblem {
                 supplyCopy.set(maxIndexInRow, supplyCopy.get(maxIndexInRow) - currentValue);
                 demandCopy.set(miniIndexLine, demandCopy.get(miniIndexLine) - currentValue);
                 if (supplyCopy.get(maxIndexInRow) == 0) {
-                    for (int i = 0; i < m; i++) {
+                    for (int i = 0; i < n; i++) {
                         costsCopy.setValue(maxIndexInRow, i, Integer.MAX_VALUE);
 
                     }
                 }
                 if (demandCopy.get(miniIndexLine) == 0) {
-                    for (int i = 0; i < m; i++) {
+                    for (int i = 0; i < n; i++) {
                         costsCopy.setValue(i, miniIndexLine, Integer.MAX_VALUE);
                     }
                 }
