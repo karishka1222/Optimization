@@ -44,7 +44,7 @@ public class TransportationProblem {
         Vector Demand = new Vector(destArr);
 
         //3. Cost Matrix C
-        double[][] costArr = new double[inputList.getFirst().length][inputList.size()-2];
+        double[][] costArr = new double[inputList.getFirst().length][Demand.size()];
         String[][] costs = new String[costArr.length][costArr[0].length];
         for (int row = 0; row < inputList.size()-2; row++) {
             String[] arr = inputList.get(row+1);
@@ -100,7 +100,7 @@ public class TransportationProblem {
 
     private static void printTable(String[] supply, String[][] costs, String[] demand) {
         int S = supply.length;
-        int D = costs.length;
+        int D = costs[0].length;
 
         // Create the header
         System.out.printf("%30s%n", "Destination");
@@ -169,7 +169,7 @@ public class TransportationProblem {
         String[] resultsDemand = new String[m];
 
         while (i < n && j < m) {
-            double currentValue = Math.min(supplyCopy.get(i), supplyCopy.get(j));
+            double currentValue = Math.min(supplyCopy.get(i), demandCopy.get(j));
             resultPath.setValue(i, j, currentValue);
             result += currentValue * costsCopy.getValue(i, j);
             supplyCopy.set(i, supplyCopy.get(i) - currentValue);
