@@ -1,0 +1,34 @@
+Lab 7 Problem 2
+
+Input:
+160 140 170
+7 8 1 2
+4 5 9 8
+9 2 3 6
+120 50 190 110
+
+Output:
+Initial table:
+                   Destination
+               1       2       3       4  Supply
+Source 1       7       8       1       2     160
+Source 2       4       5       9       8     140
+Source 3       9       2       3       6     170
+  Demand     120      50     190     110
+
+Result of North-West Corner Method:
+                   Destination
+               1       2       3       4  Supply
+Source 1     120      40       0       0       0
+Source 2       0      10     130       0       0
+Source 3       0       0      60     110       0
+  Demand       0       0       0       0
+Optimal path is 3220
+
+Result of Vogel's Approximation Method:
+Exception in thread "main" java.lang.ArrayIndexOutOfBoundsException: Index 3 out of bounds for length 3
+	at Assignment3.Matrix.setValue(TransportationProblem.java:444)
+	at Assignment3.TransportationProblem.Vogel_s_Approximation_Method(TransportationProblem.java:320)
+	at Assignment3.TransportationProblem.main(TransportationProblem.java:79)
+
+Process finished with exit code 1

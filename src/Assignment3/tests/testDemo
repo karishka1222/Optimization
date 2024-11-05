@@ -1,0 +1,37 @@
+Optimization Midterm sample
+
+Input:
+4 3 2
+6 3 5
+4 20 7
+3 4 3
+4 3 2
+
+Output:
+Initial table:
+                   Destination
+               1       2       3  Supply
+Source 1       6       3       5       4
+Source 2       4      20       7       3
+Source 3       3       4       3       2
+  Demand       4       3       2
+
+Result of North-West Corner Method:
+                   Destination
+               1       2       3  Supply
+Source 1       4       0       0       0
+Source 2       0       3       0       0
+Source 3       0       0       2       0
+  Demand       0       0       0
+Optimal path is 90
+
+Result of Vogel's Approximation Method:
+                   Destination
+               1       2       3  Supply
+Source 1       0       3       1       0
+Source 2       3       0       0       0
+Source 3       1       0       1       0
+  Demand       0       0       0
+Optimal path is 32
+
+Result of Russell's Approximation Method:
