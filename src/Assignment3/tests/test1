@@ -26,9 +26,19 @@ Source 3       0       0      60     110       0
 Optimal path is 3220
 
 Result of Vogel's Approximation Method:
-Exception in thread "main" java.lang.ArrayIndexOutOfBoundsException: Index 3 out of bounds for length 3
-	at Assignment3.Matrix.setValue(TransportationProblem.java:444)
-	at Assignment3.TransportationProblem.Vogel_s_Approximation_Method(TransportationProblem.java:320)
-	at Assignment3.TransportationProblem.main(TransportationProblem.java:79)
+                   Destination
+               1       2       3       4  Supply
+Source 1       0       0      50     110       0
+Source 2     120      20       0       0       0
+Source 3       0      30     140       0       0
+  Demand       0       0       0       0
+Optimal path is 1330
 
-Process finished with exit code 1
+Result of Russell's Approximation Method:
+                   Destination
+               1       2       3       4  Supply
+Source 1       0       0     160       0       0
+Source 2     120       0       0      20       0
+Source 3       0      50      30      90       0
+  Demand       0       0       0       0
+Optimal path is 1530

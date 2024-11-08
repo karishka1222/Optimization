@@ -309,6 +309,7 @@ public class TransportationProblem {
         int n = Coefficients_Of_Costs.getNumRows();
         int m = Coefficients_Of_Costs.getNumCols();
         Matrix resultPath = new Matrix(n, m);
+        Matrix resultPathCopy = new Matrix(n, m);
         String[][] resultsCost = new String[n][m];
         String[] resultsSupply = new String[n];
         String[] resultsDemand = new String[m];
@@ -341,19 +342,22 @@ public class TransportationProblem {
                 resultPath.setValue(x, y, 0);
             }
             if ((demandCopy.get(y) - supplyCopy.get(x)) == 0) {
-                resultPath.setValue(x, y, resultPath.getValue(x, y) + costsCopy.getValue(x, y) * demandCopy.get(y));
+                resultPathCopy.setValue(x, y, resultPath.getValue(x, y) + costsCopy.getValue(x, y) * demandCopy.get(y));
+                resultPath.setValue(x, y, Math.min(demandCopy.get(y),supplyCopy.get(x)));
                 supplyCopy.set(x, 0);
                 demandCopy.set(y, 0);
                 for (int i = 0; i < n; i++) {
                     costsCopy.setValue(i, y, 0);
                 }
             } else if ((demandCopy.get(y) - supplyCopy.get(x)) > 0) {
-                resultPath.setValue(x, y, resultPath.getValue(x, y) + costsCopy.getValue(x, y) * supplyCopy.get(x));
+                resultPathCopy.setValue(x, y, resultPath.getValue(x, y) + costsCopy.getValue(x, y) * supplyCopy.get(x));
+                resultPath.setValue(x, y, Math.min(demandCopy.get(y),supplyCopy.get(x)));
                 demandCopy.set(y, demandCopy.get(y) - supplyCopy.get(x));
                 supplyCopy.set(x, 0);
                 costsCopy.setValue(x, y, 0);
             } else if ((demandCopy.get(y) - supplyCopy.get(x)) < 0) {
-                resultPath.setValue(x, y, resultPath.getValue(x, y) + costsCopy.getValue(x, y) * demandCopy.get(y));
+                resultPathCopy.setValue(x, y, resultPath.getValue(x, y) + costsCopy.getValue(x, y) * demandCopy.get(y));
+                resultPath.setValue(x, y, Math.min(demandCopy.get(y),supplyCopy.get(x)));
                 supplyCopy.set(x, supplyCopy.get(x) - demandCopy.get(y));
                 demandCopy.set(y, 0);
                 for (int i = 0; i < n; i++) {
@@ -364,10 +368,13 @@ public class TransportationProblem {
         }
         for (int k = 0; k < n; k++) {
             for (int l = 0; l < m; l++) {
+                if (resultPathCopy.getValue(k, l) == -1) {
+                    resultPathCopy.setValue(k, l, 0);
+                } else {
+                    result += resultPathCopy.getValue(k, l);
+                }
                 if (resultPath.getValue(k, l) == -1) {
                     resultPath.setValue(k, l, 0);
-                } else {
-                    result += resultPath.getValue(k, l);
                 }
                 resultsCost[k][l] = DecimalFormat.getInstance().format(resultPath.getValue(k, l));
                 resultsDemand[l] = DecimalFormat.getInstance().format(demandCopy.get(l));
@@ -398,7 +405,7 @@ class Matrix {
         }
     }
 
-    public Matrix(double[][] values) {
+    public Matrix(double[][] values)  {
         this.rows = values.length;
         this.cols = values[0].length;
         this.values = new double[rows][cols];
@@ -406,8 +413,6 @@ class Matrix {
             this.values[i] = Arrays.copyOf(values[i], cols);
         }
     }
-
-    public double[][] getValues() { return values; }
 
     public double getValue(int i, int j) {
         return values[i][j];
@@ -477,10 +482,6 @@ class Matrix {
             columnLine[i] = Column[i];
         }
         Arrays.sort(columnLine);
-//        for (int i = 0; i < Column.length; i++) {
-//            System.out.print(columnLine[i] + " ");
-//        }
-//        System.out.println();
         if (columnLine[0] == Integer.MAX_VALUE && columnLine[1] == Integer.MAX_VALUE) {
             return -1;
         }
@@ -491,7 +492,6 @@ class Matrix {
             return columnLine[1];
         }
 
-//        System.out.println(columnLine[0] + " " + columnLine[1]);
         return Math.abs(columnLine[1]-columnLine[0]);
     }
 
@@ -504,144 +504,6 @@ class Matrix {
         }
         Arrays.sort(newColumn);
         return newColumn[n-1];
-    }
-
-    // T for Matrix
-    public Matrix transpose() {
-        double[][] transposed = new double[cols][rows];
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                transposed[j][i] = values[i][j];
-            }
-        }
-        return new Matrix(transposed);
-    }
-
-    // Inverse
-    public Matrix inverse() {
-        if (rows != cols) {
-            throw new IllegalArgumentException("Matrix must be square.");
-        }
-
-        double[][] augmentedMatrix = new double[rows][2 * rows];
-
-        // creation [A | I]
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < rows; j++) {
-                augmentedMatrix[i][j] = values[i][j];
-            }
-            augmentedMatrix[i][i + rows] = 1;
-        }
-
-        for (int i = 0; i < rows; i++) {
-            double maxEl = Math.abs(augmentedMatrix[i][i]);
-            int maxRow = i;
-            for (int k = i + 1; k < rows; k++) {
-                if (Math.abs(augmentedMatrix[k][i]) > maxEl) {
-                    maxEl = Math.abs(augmentedMatrix[k][i]);
-                    maxRow = k;
-                }
-            }
-
-            double[] temp = augmentedMatrix[maxRow];
-            augmentedMatrix[maxRow] = augmentedMatrix[i];
-            augmentedMatrix[i] = temp;
-
-            for (int k = i + 1; k < rows; k++) {
-                double factor = augmentedMatrix[k][i] / augmentedMatrix[i][i];
-                for (int j = 0; j < 2 * rows; j++) {
-                    augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
-                }
-            }
-        }
-
-        for (int i = rows - 1; i >= 0; i--) {
-            double leadingElement = augmentedMatrix[i][i];
-            for (int j = 0; j < 2 * rows; j++) {
-                augmentedMatrix[i][j] /= leadingElement;
-            }
-            for (int k = i - 1; k >= 0; k--) {
-                double factor = augmentedMatrix[k][i];
-                for (int j = 0; j < 2 * rows; j++) {
-                    augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
-                }
-            }
-        }
-
-        double[][] inverseMatrix = new double[rows][rows];
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < rows; j++) {
-                inverseMatrix[i][j] = augmentedMatrix[i][j + rows];
-            }
-        }
-
-        return new Matrix(inverseMatrix);
-    }
-
-    // MUX for Matrix
-    public Matrix dot(Matrix B) {
-        if (cols != B.getNumRows()) {
-            throw new IllegalArgumentException("Matrix dimensions do not match for multiplication.");
-        }
-
-        double[][] result = new double[rows][B.getNumCols()];
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < B.getNumCols(); j++) {
-                for (int k = 0; k < cols; k++) {
-                    result[i][j] += values[i][k] * B.getValue(k, j);
-                }
-            }
-        }
-        return new Matrix(result);
-    }
-
-    // MUX Matrix*Vector
-    public Vector dot(Vector vector) {
-        if (cols != vector.size()) {
-            throw new IllegalArgumentException("Matrix and vector dimensions do not match.");
-        }
-
-        double[] result = new double[rows];
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                result[i] += values[i][j] * vector.get(j);
-            }
-        }
-        return new Vector(result);
-    }
-
-    // D Matrix
-    public static Matrix diag(double[] values) {
-        int n = values.length;
-        double[][] diagMatrix = new double[n][n];
-        for (int i = 0; i < n; i++) {
-            diagMatrix[i][i] = values[i];
-        }
-        return new Matrix(diagMatrix);
-    }
-
-    // Identity
-    public static Matrix eye(int size) {
-        double[][] identity = new double[size][size];
-        for (int i = 0; i < size; i++) {
-            identity[i][i] = 1.0;
-        }
-        return new Matrix(identity);
-    }
-
-    // Subtraction
-    public Matrix subtract(Matrix other) {
-        if (this.rows != other.getNumRows() || this.cols != other.getNumCols()) {
-            throw new IllegalArgumentException("Matrix dimensions do not match for subtraction.");
-        }
-
-        double[][] result = new double[rows][cols];
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                result[i][j] = values[i][j] - other.getValue(i, j);
-            }
-        }
-        return new Matrix(result);
     }
 }
 
@@ -668,15 +530,6 @@ class Vector {
         for (int i = 0; i < vector.size(); i++) {
             values[i] = vector.get(i);
         }
-    }
-
-    // MUX
-    public Vector multiply(double scalar) {
-        double[] result = new double[values.length];
-        for (int i = 0; i < values.length; i++) {
-            result[i] = values[i] * scalar;
-        }
-        return new Vector(result);
     }
 
     // Add
@@ -713,47 +566,12 @@ class Vector {
         return new Vector(result);
     }
 
-    public double norm(int p) {
-        double sum = 0.0;
-        for (double v : values) {
-            sum += Math.pow(Math.abs(v), p);
-        }
-        return Math.pow(sum, 1.0 / p);
-    }
-
-    public double min() {
-        return Arrays.stream(values).min().orElse(Double.NaN);
-    }
-
-    // Identity Vector
-    public static Vector ones(int size) {
-        double[] onesArray = new double[size];
-        Arrays.fill(onesArray, 1.0);
-        return new Vector(onesArray);
-    }
-
-    public Vector subtract(Vector other) {
-        if (values.length != other.size()) {
-            throw new IllegalArgumentException("Vector dimensions do not match for subtraction.");
-        }
-
-        double[] result = new double[values.length];
-        for (int i = 0; i < values.length; i++) {
-            result[i] = values[i] - other.get(i);
-        }
-        return new Vector(result);
-    }
-
     public double getSumValues() {
         double sum = 0.0;
         for (double v : values) {
             sum += v;
         }
         return sum;
-    }
-
-    public double[] toArray() {
-        return Arrays.copyOf(values, values.length);
     }
 
     @Override
