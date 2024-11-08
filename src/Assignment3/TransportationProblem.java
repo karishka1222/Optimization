@@ -21,29 +21,29 @@ public class TransportationProblem {
         ArrayList<String[]> inputList = new ArrayList<>();
         // Input supply vector
         inputList.add(sc.nextLine().split(" "));
-        // input costs
+        // Input costs
         for (int i = 0; i < inputList.getFirst().length; i++) {
             inputList.add(sc.nextLine().split(" "));
         }
-        // input demands
+        // Input demands
         inputList.add(sc.nextLine().split(" "));
 
-        // process input
-        // 1. Supply Vector S
+        // Creating Supply and Demand vectors and Coefficient matrix
+        // Supply Vector S
         double[] supplyArr = new double[inputList.getFirst().length];
         for (int i = 0; i < supplyArr.length; i++) {
             supplyArr[i] = Double.parseDouble(inputList.getFirst()[i]);
         }
         Vector Supply = new Vector(supplyArr);
 
-        //2. demand & destination Vector D
+        // Demand Vector
         double[] destArr = new double[inputList.getLast().length];
         for (int i = 0; i < destArr.length; i++) {
             destArr[i] = Double.parseDouble(inputList.getLast()[i]);
         }
         Vector Demand = new Vector(destArr);
 
-        //3. Cost Matrix C
+        // Cost Matrix C
         double[][] costArr = new double[inputList.getFirst().length][Demand.size()];
         String[][] costs = new String[costArr.length][costArr[0].length];
         for (int row = 0; row < inputList.size()-2; row++) {
@@ -56,37 +56,48 @@ public class TransportationProblem {
         Matrix Coefficients_Of_Costs = new Matrix(costArr);
 
 
-        // demonstrate the input:
+        // Output of the program
         System.out.println("Initial table:");
         printTable(inputList.getFirst(), costs, inputList.getLast());
 
+        // Check applicability
         if (!isApplicable(Supply, Demand, Coefficients_Of_Costs)) {
             System.out.println("The method is not applicable!");
             return;
         }
 
+        // Check balance
         if (!isBalanced(Supply, Demand)) {
             System.out.println("The problem is not balanced!");
             return;
         }
 
+        // Result of North-West Corner Method
         System.out.println();
         System.out.println("Result of North-West Corner Method:");
         North_West_Corner_Method(Supply, Demand, Coefficients_Of_Costs);
 
+        // Result of Vogel's Approximation Method
         System.out.println();
         System.out.println("Result of Vogel's Approximation Method:");
         Vogel_s_Approximation_Method(Supply, Demand, Coefficients_Of_Costs);
 
+        // Result of Russell's Approximation Method
         System.out.println();
         System.out.println("Result of Russell's Approximation Method:");
         Russell_s_Approximation_Method(Supply, Demand, Coefficients_Of_Costs);
-
     }
 
+    /**
+     * Method that print table with supply, demand and cost values
+     *
+     * @param supply array with supply values
+     * @param costs 2D array with cost values
+     * @param demand array with demand values
+     */
     private static void printTable(String[] supply, String[][] costs, String[] demand) {
-        int S = supply.length;
-        int D = costs[0].length;
+        int S = supply.length; // supply size
+        int D = costs[0].length; // demand size
 
         // Create the header
         System.out.printf("%30s%n", "Destination");
@@ -113,26 +124,44 @@ public class TransportationProblem {
         System.out.println();
     }
 
+    /**
+     * Method that check that all 3 algorithms are applicable for this problem
+     *
+     * @param Supply vector with supply values
+     * @param Demand vector with demand values
+     * @param Coefficients_Of_Costs matrix with cost values
+     */
     public static boolean isApplicable(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs) {
+        // if num of supply values != num of rows in the table and num of demand values != num of columns in the table
         if (Supply.size() != Coefficients_Of_Costs.getNumRows() || Demand.size() != Coefficients_Of_Costs.getNumCols()) {
             return false;
         }
         return true;
     }
 
+    /**
+     * Method that check that all 3 algorithms are applicable for this problem
+     *
+     * @param Supply vector with supply values
+     * @param Demand vector with demand values
+     */
     public static boolean isBalanced(Vector Supply, Vector Demand) {
-        // If method is not balanced
+        // Sum of supply must be equal to sum of demand
         double sumSupply = Supply.getSumValues();
         double sumDemand = Demand.getSumValues();
-        if (sumSupply != sumDemand) {
-            return false;
-        }
-        return true;
+        return sumSupply == sumDemand;
     }
 
+    /**
+     * Method that apply North-West Corner Method to current transportation problem
+     *
+     * @param Supply vector with supply values
+     * @param Demand vector with demand values
+     * @param Coefficients_Of_Costs matrix with cost values
+     */
     public static void North_West_Corner_Method(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs) {
-        int n = Coefficients_Of_Costs.getNumRows();
-        int m = Coefficients_Of_Costs.getNumCols();
+        int n = Coefficients_Of_Costs.getNumRows(); // num of rows
+        int m = Coefficients_Of_Costs.getNumCols(); // num of columns
 
         // Create copies for Supply, Demand and Coefficients
         Vector supplyCopy = new Vector(Supply.size());
@@ -146,20 +175,26 @@ public class TransportationProblem {
             }
         }
 
-        Matrix resultPath = new Matrix(n, m);
-        double result = 0;
-        int i = 0;
-        int j = 0;
+        // Variables for saving result
+        Matrix resultPath = new Matrix(n, m); // matrix of chosen costs
+        double result = 0; // optimal path
+        int i = 0; // current row
+        int j = 0; // current column
+        // Duplicates for output
         String[][] resultsCost = new String[n][m];
         String[] resultsSupply = new String[n];
         String[] resultsDemand = new String[m];
 
+        // Haven't reached the end point yet
         while (i < n && j < m) {
+            // Maximum available cost from supply and demand
             double currentValue = Math.min(supplyCopy.get(i), demandCopy.get(j));
             resultPath.setValue(i, j, currentValue);
             result += currentValue * costsCopy.getValue(i, j);
+            // Decrease supply and demand by used cost
             supplyCopy.set(i, supplyCopy.get(i) - currentValue);
             demandCopy.set(j, demandCopy.get(j) - currentValue);
+            // Move on the next cell
             if (supplyCopy.get(i) == 0) {
                 i++;
             }
@@ -167,24 +202,36 @@ public class TransportationProblem {
                 j++;
             }
         }
+        // Preparation for output
         for (int k = 0; k < n; k++) {
             for (int l = 0; l < m; l++) {
+                // if we do not use this cell
                 if (resultPath.getValue(k, l) == -1) {
                     resultPath.setValue(k, l, 0);
                 }
+                // Convert to string
                 resultsCost[k][l] = DecimalFormat.getInstance().format(resultPath.getValue(k, l));
                 resultsDemand[l] = DecimalFormat.getInstance().format(demandCopy.get(l));
             }
             resultsSupply[k] = DecimalFormat.getInstance().format(supplyCopy.get(k));
         }
+        // Print it
         printTable(resultsSupply, resultsCost, resultsDemand);
+        // Output optimal path
         System.out.println("Optimal path is " + DecimalFormat.getInstance().format(result));
 
     }
 
+    /**
+     * Method that apply Vogel's approximation Method to current transportation problem
+     *
+     * @param Supply vector with supply values
+     * @param Demand vector with demand values
+     * @param Coefficients_Of_Costs matrix with cost values
+     */
     public static void Vogel_s_Approximation_Method(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs){
-        int n = Coefficients_Of_Costs.getNumRows();
-        int m = Coefficients_Of_Costs.getNumCols();
+        int n = Coefficients_Of_Costs.getNumRows(); // num of rows
+        int m = Coefficients_Of_Costs.getNumCols(); // num of columns
 
         // Create copies for Supply, Demand and Coefficients
         Vector supplyCopy = new Vector(Supply.size());
@@ -198,30 +245,37 @@ public class TransportationProblem {
             }
         }
 
-        // To fix result table and optimal value
-        Matrix resultPath = new Matrix(n, m);
-        double result = 0;
+        // Variables for saving result
+        Matrix resultPath = new Matrix(n, m); // matrix of chosen costs
+        double result = 0; // optimal path
+        // Duplicates for output
         String[][] resultsCost = new String[n][m];
         String[] resultsSupply = new String[n];
         String[] resultsDemand = new String[m];
 
+        // Haven't reached the end point yet
         while (true) {
+            boolean notEnd = false; // flag to finish algorithm execution
             // Searching the difference between two minimal elements in rows and columns
             double[] differenceRows = new double[supplyCopy.size()];
             double[] differenceCols = new double[demandCopy.size()];
-            boolean notEnd = false;
+            // Differences in rows
             for (int i = 0; i < n; i++) {
                 differenceRows[i] = costsCopy.sub_two_min_Elements_From_Row(i);
+                // if there are values for iterations
                 if (differenceRows[i] != -1) {
                     notEnd = true;
                 }
             }
+            // Differences in columns
             for (int i = 0; i < m; i++) {
                 differenceCols[i] = costsCopy.sub_two_min_Elements_From_Column(i);
+                // if there are values for iteration
                 if (differenceCols[i] != -1) {
                     notEnd = true;
                 }
             }
+            // There is no any differences for iteration
             if (!notEnd) {
                 break;
             }
@@ -263,6 +317,7 @@ public class TransportationProblem {
                     minElementInLine = currentLine[i];
                 }
             }
+            // Define current suitable line
             int curRow, curColumn;
             if (isCol) {
                 curRow = miniIndexLine;
@@ -271,36 +326,52 @@ public class TransportationProblem {
                 curRow = maxIndexInRow;
                 curColumn = miniIndexLine;
             }
+            // Maximum available cost from supply and demand
             double currentValue = Math.min(supplyCopy.get(curRow), demandCopy.get(curColumn));
             resultPath.setValue(curRow, curColumn, currentValue);
             result += currentValue * Coefficients_Of_Costs.getValue(curRow, curColumn);
+            // Decrease supply and demand by used cost
             supplyCopy.set(curRow, supplyCopy.get(curRow) - currentValue);
             demandCopy.set(curColumn, demandCopy.get(curColumn) - currentValue);
+            // Nullify cells that are not available because supply value = 0
             if (supplyCopy.get(curRow) == 0) {
                 for (int i = 0; i < m; i++) {
                     costsCopy.setValue(curRow, i, Integer.MAX_VALUE);
                 }
             }
+            // Nullify cells that are not available because demand value = 0
             if (demandCopy.get(curColumn) == 0) {
                 for (int i = 0; i < n; i++) {
                     costsCopy.setValue(i, curColumn, Integer.MAX_VALUE);
                 }
             }
         }
+        // Preparation for output
         for (int k = 0; k < n; k++) {
             for (int l = 0; l < m; l++) {
+                // if we do not use this cell
                 if (resultPath.getValue(k, l) == -1) {
                     resultPath.setValue(k, l, 0);
                 }
+                // Convert to string
                 resultsCost[k][l] = DecimalFormat.getInstance().format(resultPath.getValue(k, l));
                 resultsDemand[l] = DecimalFormat.getInstance().format(demandCopy.get(l));
             }
             resultsSupply[k] = DecimalFormat.getInstance().format(supplyCopy.get(k));
         }
+        // Print it
         printTable(resultsSupply, resultsCost, resultsDemand);
+        // Output optimal path
         System.out.println("Optimal path is " + DecimalFormat.getInstance().format(result));
     }
 
+    /**
+     * Method that apply Russell's approximation Method to current transportation problem
+     *
+     * @param Supply vector with supply values
+     * @param Demand vector with demand values
+     * @param Coefficients_Of_Costs matrix with cost values
+     */
     public static void Russell_s_Approximation_Method(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs){
         Vector supplyCopy = new Vector(Supply.size());
         supplyCopy.copy(Supply);
@@ -387,13 +458,20 @@ public class TransportationProblem {
 
 }
 
-
-// class Matrix
+/**
+ * Matrix class representing a mathematical matrix.
+ */
 class Matrix {
     private int rows;
     private int cols;
     private double[][] values;
 
+    /**
+     * Constructor for creating a matrix with specified dimensions.
+     *
+     * @param rows number of rows
+     * @param cols number of columns
+     */
     public Matrix(int rows, int cols) {
         this.rows = rows;
         this.cols = cols;
@@ -405,6 +483,11 @@ class Matrix {
         }
     }
 
+    /**
+     * Constructor for creating a matrix with specified dimensions and values.
+     *
+     * @param values 2D array containing matrix elements
+     */
     public Matrix(double[][] values)  {
         this.rows = values.length;
         this.cols = values[0].length;
@@ -414,14 +497,33 @@ class Matrix {
         }
     }
 
+    /**
+     * Returns the value of the matrix at a specific position.
+     *
+     * @param i row index
+     * @param j column index
+     * @return the value at the specified position
+     */
     public double getValue(int i, int j) {
         return values[i][j];
     }
 
+    /**
+     * Returns the row at this position
+     *
+     * @param i row index
+     * @return the row from the table at the specified position
+     */
     public double[] getRow(int i) {
         return values[i];
     }
 
+    /**
+     * Returns the column at this position
+     *
+     * @param i column index
+     * @return the column from the table at the specified position
+     */
     public double[] getColumn(int i) {
         double[] column = new double[rows];
         for (int row = 0; row < rows; row++) {
@@ -430,31 +532,55 @@ class Matrix {
         return column;
     }
 
-
-
+    /**
+     * Returns the value of the matrix at a specific position.
+     *
+     * @param i row index
+     * @param j column index
+     * @param value new value
+     */
     public void setValue(int i, int j, double value) {
         values[i][j] = value;
     }
 
-    // number of row
+    /**
+     * Returns the number of rows in the matrix.
+     *
+     * @return the number of rows
+     */
     public int getNumRows() {
         return rows;
     }
-    // number of column
+
+    /**
+     * Returns the number of columns in the matrix.
+     *
+     * @return the number of columns
+     */
     public int getNumCols() {
         return cols;
     }
 
+    /**
+     * Returns the difference between two minimal values from current row.
+     *
+     * @param row index of the row that are considered
+     * @return the difference between two minimal values
+     */
     public double sub_two_min_Elements_From_Row(int row) {
         double[] Row = getRow(row);
+        // Copy values not to change them in the table
         double[] rowLine = new double[Row.length];
         for (int i = 0; i < Row.length; i++) {
             rowLine[i] = Row[i];
         }
+        // Sort values in increasing order
         Arrays.sort(rowLine);
+        // if there is no any available values on the table
         if (rowLine[0] == Integer.MAX_VALUE && rowLine[1] == Integer.MAX_VALUE) {
             return -1;
         }
+        // if there is only one available value
         if (rowLine[1] == Integer.MAX_VALUE) {
             return rowLine[0];
         }
@@ -464,118 +590,146 @@ class Matrix {
         return Math.abs(rowLine[1]-rowLine[0]);
     }
 
+    /**
+     * Returns the maximum element from current row.
+     *
+     * @param row index of the row that are considered
+     * @param matrix matrix that are considered
+     * @return the maximum element from row
+     */
     public double max_Elements_From_Row(int row, Matrix matrix) {
         int n = getNumCols();
         double[] Row = getRow(row);
+        // Copy values not to change them in the table
         double[] newRow = new double[Row.length];
         for (int i = 0; i < Row.length; i++) {
             newRow[i] = Row[i];
         }
+        // Sort values in increasing order
         Arrays.sort(newRow);
         return newRow[n-1];
     }
 
+    /**
+     * Returns the difference between two minimal values from current column.
+     *
+     * @param column index of the column that are considered
+     * @return the difference between two minimal values
+     */
     public double sub_two_min_Elements_From_Column(int column) {
         double[] Column = getColumn(column);
+        // Copy values not to change them in the table
         double[] columnLine = new double[Column.length];
         for (int i = 0; i < Column.length; i++) {
             columnLine[i] = Column[i];
         }
+        // Sort values in increasing order
         Arrays.sort(columnLine);
+        // if there is no any available values on the table
         if (columnLine[0] == Integer.MAX_VALUE && columnLine[1] == Integer.MAX_VALUE) {
             return -1;
         }
+        // if there is only one available value
         if (columnLine[1] == Integer.MAX_VALUE) {
             return columnLine[0];
         }
         if (columnLine[0] == Integer.MAX_VALUE) {
             return columnLine[1];
         }
-
         return Math.abs(columnLine[1]-columnLine[0]);
     }
 
+    /**
+     * Returns the maximum element from current column.
+     *
+     * @param column index of the column that are considered
+     * @param matrix matrix that are considered
+     * @return the maximum element from column
+     */
     public double max_Elements_From_Column(int column, Matrix matrix) {
         int n = getNumRows();
         double[] Column = getColumn(column);
+        // Copy values not to change them in the table
         double[] newColumn = new double[Column.length];
         for (int i = 0; i < Column.length; i++) {
             newColumn[i] = Column[i];
         }
+        // Sort values in increasing order
         Arrays.sort(newColumn);
         return newColumn[n-1];
     }
 }
 
+/**
+ * Vector class representing a mathematical vector.
+ */
 class Vector {
     private double[] values;
 
+    /**
+     * Constructor for creating a vector without values.
+     *
+     * @param n size of vector
+     */
     public Vector(int n) { this.values = new double[n]; }
 
+    /**
+     * Constructor for creating a vector with specified size and values.
+     *
+     * @param values array containing vector elements
+     */
     public Vector(double[] values) {
         this.values = Arrays.copyOf(values, values.length);
     }
 
+    /**
+     * Returns the value of the vector at a specific index.
+     *
+     * @param index index of the element to be returned
+     * @return the value at the specified index
+     */
     public double get(int index) {
         return values[index];
     }
 
+    /**
+     * Set a new value at a specific index.
+     *
+     * @param index index of the element to be changed
+     * @param value new value at this position
+     */
     public void set(int index, double value) { values[index] = value; }
 
+    /**
+     * Returns the size of the vector.
+     *
+     * @return the size of the vector
+     */
     public int size() {
         return values.length;
     }
 
+    /**
+     * Make a copy of vector.
+     *
+     * @param vector the vector that will be copied
+     */
     public void copy(Vector vector) {
         for (int i = 0; i < vector.size(); i++) {
             values[i] = vector.get(i);
         }
     }
 
-    // Add
-    public Vector add(Vector other) {
-        if (values.length != other.size()) {
-            throw new IllegalArgumentException("Vector dimensions do not match for addition.");
-        }
-
-        double[] result = new double[values.length];
-        for (int i = 0; i < values.length; i++) {
-            result[i] = values[i] + other.get(i);
-        }
-        return new Vector(result);
-    }
-
-    public Vector add(double scalar) {
-        double[] result = new double[values.length];
-        for (int i = 0; i < values.length; i++) {
-            result[i] = values[i] + scalar;
-        }
-        return new Vector(result);
-    }
-
-    // MUV Vector*D
-    public Vector dot(Vector other) {
-        if (values.length != other.size()) {
-            throw new IllegalArgumentException("Vector dimensions do not match for dot product.");
-        }
-
-        double[] result = new double[values.length];
-        for (int i = 0; i < values.length; i++) {
-            result[i] = values[i] * other.get(i);
-        }
-        return new Vector(result);
-    }
-
+    /**
+     * Return sum of all values of current vector
+     *
+     * @return sum of all values
+     */
     public double getSumValues() {
         double sum = 0.0;
         for (double v : values) {
             sum += v;
         }
         return sum;
-    }
-
-    @Override
-    public String toString() {
-        return Arrays.toString(values);
     }
 }
