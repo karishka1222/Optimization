@@ -1,0 +1,43 @@
+
+Input:
+180 220 150
+2 6 4 5
+7 3 8 9
+5 4 6 2
+100 130 160 160
+
+Output:
+Initial table:
+                   Destination
+               1       2       3       4  Supply
+Source 1       2       6       4       5     180
+Source 2       7       3       8       9     220
+Source 3       5       4       6       2     150
+  Demand     100     130     160     160
+
+Result of North-West Corner Method:
+                   Destination
+               1       2       3       4  Supply
+Source 1     100      80       0       0       0
+Source 2       0      50     160      10       0
+Source 3       0       0       0     150       0
+  Demand       0       0       0       0
+Optimal path is 2500
+
+Result of Vogel's Approximation Method:
+                   Destination
+               1       2       3       4  Supply
+Source 1     100       0      80       0       0
+Source 2       0     130      80      10       0
+Source 3       0       0       0     150       0
+  Demand       0       0       0       0
+Optimal path is 1940
+
+Result of Russell's Approximation Method:
+                   Destination
+               1       2       3       4  Supply
+Source 1     100       0      80       0       0
+Source 2       0     130      80      10       0
+Source 3       0       0       0     150       0
+  Demand       0       0       0       0
+Optimal path is 1940
