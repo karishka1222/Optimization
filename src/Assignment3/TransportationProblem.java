@@ -82,20 +82,6 @@ public class TransportationProblem {
         System.out.println("Result of Russell's Approximation Method:");
         Russell_s_Approximation_Method(Supply, Demand, Coefficients_Of_Costs);
 
-        //New methods examples:
-
-        // возвращает разность двух наименьших в строке
-//        double a = Matrix.sub_two_min_Elements_From_Row(1, Coefficients_Of_Costs);
-        // возвращает max в строке
-//        double b = Matrix.max_Elements_From_Row(1, Coefficients_Of_Costs);
-
-
-        // возвращает разность двух наименьших в столбце
-//        double c = Matrix.sub_two_min_Elements_From_Column(0, Coefficients_Of_Costs);
-        // возвращает max в столбце
-//        double d = Matrix.max_Elements_From_Column(2, Coefficients_Of_Costs);
-
-//        System.out.println("a = " + a + ", b = " + b + ", c = " + c + ", d = " + d);
     }
 
     private static void printTable(String[] supply, String[][] costs, String[] demand) {
@@ -211,12 +197,6 @@ public class TransportationProblem {
                 costsCopy.setValue(i, j, Coefficients_Of_Costs.getValue(i, j));
             }
         }
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < m; j++) {
-//                System.out.print(costsCopy.getValue(i, j) + " ");
-//            }
-//            System.out.println();
-//        }
 
         // To fix result table and optimal value
         Matrix resultPath = new Matrix(n, m);
@@ -225,10 +205,7 @@ public class TransportationProblem {
         String[] resultsSupply = new String[n];
         String[] resultsDemand = new String[m];
 
-//        int step= 0;
         while (true) {
-//            step++;
-//            System.out.println("Iteration " + step);
             // Searching the difference between two minimal elements in rows and columns
             double[] differenceRows = new double[supplyCopy.size()];
             double[] differenceCols = new double[demandCopy.size()];
@@ -245,17 +222,6 @@ public class TransportationProblem {
                     notEnd = true;
                 }
             }
-//            System.out.println("Difference row:");
-//            for (int i = 0; i < differenceRows.length; i++) {
-//                System.out.print(differenceRows[i] + " ");
-//            }
-//            System.out.println();
-//            System.out.println("Difference column:");
-//            for (int i = 0; i < differenceCols.length; i++) {
-//                System.out.print(differenceCols[i] + " ");
-//            }
-//            System.out.println();
-//            System.out.println();
             if (!notEnd) {
                 break;
             }
@@ -278,14 +244,7 @@ public class TransportationProblem {
             }
 
             // Determine what we choose, row or column
-            double maxElement;
-            boolean isCol = false;
-            if (maxElementInCol > maxElementInRow) {
-                maxElement = maxElementInCol;
-                isCol = true;
-            } else {
-                maxElement = maxElementInRow;
-            }
+            boolean isCol = maxElementInCol > maxElementInRow;
 
             // Take values from this line
             double[] currentLine;
@@ -304,68 +263,29 @@ public class TransportationProblem {
                     minElementInLine = currentLine[i];
                 }
             }
+            int curRow, curColumn;
             if (isCol) {
-                double currentValue = Math.min(supplyCopy.get(miniIndexLine), demandCopy.get(maxIndexInCol));
-                resultPath.setValue(miniIndexLine, maxIndexInCol, currentValue);
-                result += currentValue * Coefficients_Of_Costs.getValue(miniIndexLine, maxIndexInCol);
-                supplyCopy.set(miniIndexLine, supplyCopy.get(miniIndexLine) - currentValue);
-                demandCopy.set(maxIndexInCol, demandCopy.get(maxIndexInCol) - currentValue);
-                if (supplyCopy.get(miniIndexLine) == 0) {
-                    for (int i = 0; i < m; i++) {
-                        costsCopy.setValue(miniIndexLine, i, Integer.MAX_VALUE);
-                    }
-                }
-                if (demandCopy.get(maxIndexInCol) == 0) {
-                    for (int i = 0; i < n; i++) {
-                        costsCopy.setValue(i, maxIndexInCol, Integer.MAX_VALUE);
-                    }
-                }
+                curRow = miniIndexLine;
+                curColumn = maxIndexInCol;
             } else {
-                double currentValue = Math.min(supplyCopy.get(maxIndexInRow), demandCopy.get(miniIndexLine));
-                resultPath.setValue(maxIndexInRow, miniIndexLine, currentValue);
-                result += currentValue * costsCopy.getValue(maxIndexInRow, miniIndexLine);
-                supplyCopy.set(maxIndexInRow, supplyCopy.get(maxIndexInRow) - currentValue);
-                demandCopy.set(miniIndexLine, demandCopy.get(miniIndexLine) - currentValue);
-                if (supplyCopy.get(maxIndexInRow) == 0) {
-                    for (int i = 0; i < n; i++) {
-                        costsCopy.setValue(maxIndexInRow, i, Integer.MAX_VALUE);
-
-                    }
-                }
-                if (demandCopy.get(miniIndexLine) == 0) {
-                    for (int i = 0; i < n; i++) {
-                        costsCopy.setValue(i, miniIndexLine, Integer.MAX_VALUE);
-                    }
+                curRow = maxIndexInRow;
+                curColumn = miniIndexLine;
+            }
+            double currentValue = Math.min(supplyCopy.get(curRow), demandCopy.get(curColumn));
+            resultPath.setValue(curRow, curColumn, currentValue);
+            result += currentValue * Coefficients_Of_Costs.getValue(curRow, curColumn);
+            supplyCopy.set(curRow, supplyCopy.get(curRow) - currentValue);
+            demandCopy.set(curColumn, demandCopy.get(curColumn) - currentValue);
+            if (supplyCopy.get(curRow) == 0) {
+                for (int i = 0; i < m; i++) {
+                    costsCopy.setValue(curRow, i, Integer.MAX_VALUE);
                 }
             }
-//            System.out.println("Coeff main:");
-//            for (int i = 0; i < n; i++) {
-//                for (int j = 0; j < m; j++) {
-//                    System.out.print(costsCopy.getValue(i, j) + " ");
-//                }
-//                System.out.println();
-//            }
-//            System.out.println();
-//            System.out.println("Result costs:");
-//            for (int i = 0; i < n; i++) {
-//                for (int j = 0; j < m; j++) {
-//                    System.out.print(resultPath.getValue(i, j) + " ");
-//                }
-//                System.out.println();
-//            }
-//            System.out.println();
-//            System.out.println("Supply costs:");
-//            for (int i = 0; i < n; i++) {
-//                System.out.print(supplyCopy.get(i) + " ");
-//            }
-//            System.out.println();
-//            System.out.println("Demand costs:");
-//            for (int i = 0; i < m; i++) {
-//                System.out.print(demandCopy.get(i) + " ");
-//            }
-//            System.out.println();
-//            System.out.println();
-
+            if (demandCopy.get(curColumn) == 0) {
+                for (int i = 0; i < n; i++) {
+                    costsCopy.setValue(i, curColumn, Integer.MAX_VALUE);
+                }
+            }
         }
         for (int k = 0; k < n; k++) {
             for (int l = 0; l < m; l++) {
