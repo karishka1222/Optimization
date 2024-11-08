@@ -5,21 +5,21 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Scanner;
 
+/**
+ * Main class that handles user input and applies the Transportation problem for solving
+ * linear programming problems.
+ */
 public class TransportationProblem {
+    /**
+     * The main method to read user input and start the Interior-Point algorithm.
+     *
+     * @param args command-line arguments (not used)
+     */
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
-        //example of input:
-        /*
-4 3 2
-6 3 5
-4 20 7
-3 4 3
-4 3 2
-        */
-        // input all data
+        // Input all data
         ArrayList<String[]> inputList = new ArrayList<>();
-        // input supply vector
+        // Input supply vector
         inputList.add(sc.nextLine().split(" "));
         // input costs
         for (int i = 0; i < inputList.getFirst().length; i++) {
