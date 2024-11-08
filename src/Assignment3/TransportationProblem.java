@@ -373,24 +373,35 @@ public class TransportationProblem {
      * @param Coefficients_Of_Costs matrix with cost values
      */
     public static void Russell_s_Approximation_Method(Vector Supply, Vector Demand, Matrix Coefficients_Of_Costs){
+        // Copies the supply and demand vectors to avoid modifying the original values during calculation
         Vector supplyCopy = new Vector(Supply.size());
         supplyCopy.copy(Supply);
         Vector demandCopy = new Vector(Demand.size());
         demandCopy.copy(Demand);
+
+        // Get dimensions of the cost matrix
         int n = Coefficients_Of_Costs.getNumRows();
         int m = Coefficients_Of_Costs.getNumCols();
+
+        // Initialize matrices to store the result path and an intermediate result path with accumulated costs
         Matrix resultPath = new Matrix(n, m);
         Matrix resultPathCopy = new Matrix(n, m);
+
+        // Initialize arrays to hold the formatted results for output
         String[][] resultsCost = new String[n][m];
         String[] resultsSupply = new String[n];
         String[] resultsDemand = new String[m];
-        double result = 0;
+        double result = 0;// Variable to store the total transportation cost
+
+        // Create a copy of the cost matrix for manipulation during calculations
         Matrix costsCopy = new Matrix(n, m);
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < m; j++) {
                 costsCopy.setValue(i, j, Coefficients_Of_Costs.getValue(i, j));
             }
         }
+
+        // Main loop to determine optimal paths until demand is fulfilled
         while (true){
             int x = 0, y = 0;
             double max = Double.MIN_VALUE;
@@ -398,7 +409,9 @@ public class TransportationProblem {
                 double row_max = costsCopy.max_Elements_From_Row(i, costsCopy);
                 for (int j = 0; j < m; j++) {
                     double col_max = costsCopy.max_Elements_From_Column(j, costsCopy);
-                    if (costsCopy.getValue(i,j) != 0 && max < Math.abs(costsCopy.getValue(i, j) - col_max - row_max)) {
+
+                    // Calculate the opportunity cost difference and update x, y if max difference found
+                    if (costsCopy.getValue(i,j) != -1 && max < Math.abs(costsCopy.getValue(i, j) - col_max - row_max)) {
                         x = i;
                         y = j;
                         max = Math.abs(costsCopy.getValue(i, j) - col_max - row_max);
@@ -406,54 +419,67 @@ public class TransportationProblem {
                     }
                 }
             }
+
+            // Break loop if the demand has been fully satisfied
             if (demandCopy.getSumValues() == 0){
                 break;
             }
+
+            // Initialize resultPath if not set
             if (resultPath.getValue(x, y) == -1) {
                 resultPath.setValue(x, y, 0);
             }
+
+            // Allocate supply and demand values based on the selected cell (x, y)
             if ((demandCopy.get(y) - supplyCopy.get(x)) == 0) {
+                // Case where supply exactly meets demand
                 resultPathCopy.setValue(x, y, resultPath.getValue(x, y) + costsCopy.getValue(x, y) * demandCopy.get(y));
                 resultPath.setValue(x, y, Math.min(demandCopy.get(y),supplyCopy.get(x)));
-                supplyCopy.set(x, 0);
-                demandCopy.set(y, 0);
+                supplyCopy.set(x, 0); // Set supply to zero as it's used up
+                demandCopy.set(y, 0); // Set demand to zero as it's fulfilled
                 for (int i = 0; i < n; i++) {
-                    costsCopy.setValue(i, y, 0);
+                    costsCopy.setValue(i, y, -1); // Set column values to -1 to prevent further allocation to this demand
                 }
             } else if ((demandCopy.get(y) - supplyCopy.get(x)) > 0) {
+                // Case where demand is greater than supply
                 resultPathCopy.setValue(x, y, resultPath.getValue(x, y) + costsCopy.getValue(x, y) * supplyCopy.get(x));
                 resultPath.setValue(x, y, Math.min(demandCopy.get(y),supplyCopy.get(x)));
-                demandCopy.set(y, demandCopy.get(y) - supplyCopy.get(x));
-                supplyCopy.set(x, 0);
-                costsCopy.setValue(x, y, 0);
+                demandCopy.set(y, demandCopy.get(y) - supplyCopy.get(x)); // Reduce demand by the supply used
+                supplyCopy.set(x, 0); // Supply is depleted for this source
+                costsCopy.setValue(x, y, -1); // Set the cost to -1 to prevent re-allocation to this cell
             } else if ((demandCopy.get(y) - supplyCopy.get(x)) < 0) {
+                // Case where supply is greater than demand
                 resultPathCopy.setValue(x, y, resultPath.getValue(x, y) + costsCopy.getValue(x, y) * demandCopy.get(y));
                 resultPath.setValue(x, y, Math.min(demandCopy.get(y),supplyCopy.get(x)));
-                supplyCopy.set(x, supplyCopy.get(x) - demandCopy.get(y));
-                demandCopy.set(y, 0);
+                supplyCopy.set(x, supplyCopy.get(x) - demandCopy.get(y)); // Reduce supply by the demand used
+                demandCopy.set(y, 0); // Demand is fulfilled
                 for (int i = 0; i < n; i++) {
-                    costsCopy.setValue(i, y, 0);
+                    costsCopy.setValue(i, y, -1); // Set column to -1 to prevent further allocation
                 }
             }
-            costsCopy.setValue(x, y, 0);
+            costsCopy.setValue(x, y, -1); // Reset cost for the processed cell
         }
+
+        // Final calculations and formatting for output
         for (int k = 0; k < n; k++) {
             for (int l = 0; l < m; l++) {
                 if (resultPathCopy.getValue(k, l) == -1) {
-                    resultPathCopy.setValue(k, l, 0);
+                    resultPathCopy.setValue(k, l, 0); // Set unassigned cells to zero in result path copy
                 } else {
-                    result += resultPathCopy.getValue(k, l);
+                    result += resultPathCopy.getValue(k, l); // Sum up the total transportation cost
                 }
                 if (resultPath.getValue(k, l) == -1) {
-                    resultPath.setValue(k, l, 0);
+                    resultPath.setValue(k, l, 0); // Set unassigned cells to zero in result path
                 }
-                resultsCost[k][l] = DecimalFormat.getInstance().format(resultPath.getValue(k, l));
-                resultsDemand[l] = DecimalFormat.getInstance().format(demandCopy.get(l));
+                resultsCost[k][l] = DecimalFormat.getInstance().format(resultPath.getValue(k, l)); // Format result for each cell
+                resultsDemand[l] = DecimalFormat.getInstance().format(demandCopy.get(l)); // Format remaining demand for each destination
             }
-            resultsSupply[k] = DecimalFormat.getInstance().format(supplyCopy.get(k));
+            resultsSupply[k] = DecimalFormat.getInstance().format(supplyCopy.get(k)); // Format remaining supply for each source
         }
+
+        // Print the final results in a table format
         printTable(resultsSupply, resultsCost, resultsDemand);
-        System.out.println("Optimal path is " + DecimalFormat.getInstance().format(result));
+        System.out.println("Optimal path is " + DecimalFormat.getInstance().format(result)); // Print total cost
     }
 
 }
