@@ -317,21 +317,9 @@ public class TransportationProblem {
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < m; j++) {
                 costsCopy.setValue(i, j, Coefficients_Of_Costs.getValue(i, j));
-                //System.out.println(costsCopy.getValue(i,j));
             }
         }
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < m; j++) {
-//                System.out.print(costsCopy.getValue(i, j)+ " ");
-//                //System.out.println(costsCopy.getValue(i,j));
-//            }
-//            System.out.println("");
-//        }
-
-//        for (int u = 0; u < 5; u++) {
         while (true){
-
-
             int x = 0, y = 0;
             double max = Double.MIN_VALUE;
             for (int i = 0; i < n; i++) {
@@ -339,39 +327,21 @@ public class TransportationProblem {
                 for (int j = 0; j < m; j++) {
                     double col_max = costsCopy.max_Elements_From_Column(j, costsCopy);
                     if (costsCopy.getValue(i,j) != 0 && max < Math.abs(costsCopy.getValue(i, j) - col_max - row_max)) {
-                        //System.out.println(row_max + " "+ col_max);
                         x = i;
                         y = j;
-                        //System.out.println(x + " " + y);
-
                         max = Math.abs(costsCopy.getValue(i, j) - col_max - row_max);
 
                     }
                 }
             }
-//            for (int i = 0; i < n; i++) {
-//                System.out.println(demandCopy.get(i));
-//            }
-//            System.out.println("______________ demand");
-//
-//            System.out.println(demandCopy.getSumValues());
             if (demandCopy.getSumValues() == 0){
                 break;
             }
-
-
-            //System.out.println(max + " " + costsCopy.getValue(x,y));
-            //System.out.println(costsCopy.getValue(x, y));
-
-//            System.out.println(costsCopy.getValue(x, y));
             if (resultPath.getValue(x, y) == -1) {
                 resultPath.setValue(x, y, 0);
             }
-
-            //System.out.println((demandCopy.get(y) - supplyCopy.get(x)) + " " + demandCopy.get(y) + " " + supplyCopy.get(x));
             if ((demandCopy.get(y) - supplyCopy.get(x)) == 0) {
                 resultPath.setValue(x, y, resultPath.getValue(x, y) + costsCopy.getValue(x, y) * demandCopy.get(y));
-                //System.out.println(resultPath.getValue(x, y) + " " + resultPath.getValue(x, y) + costsCopy.getValue(x, y) * demandCopy.get(y));
                 supplyCopy.set(x, 0);
                 demandCopy.set(y, 0);
                 for (int i = 0; i < n; i++) {
@@ -380,34 +350,18 @@ public class TransportationProblem {
             } else if ((demandCopy.get(y) - supplyCopy.get(x)) > 0) {
                 resultPath.setValue(x, y, resultPath.getValue(x, y) + costsCopy.getValue(x, y) * supplyCopy.get(x));
                 demandCopy.set(y, demandCopy.get(y) - supplyCopy.get(x));
-                //System.out.println(resultPath.getValue(x, y) + " " + resultPath.getValue(x, y) + costsCopy.getValue(x, y) * supplyCopy.get(x));
                 supplyCopy.set(x, 0);
                 costsCopy.setValue(x, y, 0);
             } else if ((demandCopy.get(y) - supplyCopy.get(x)) < 0) {
                 resultPath.setValue(x, y, resultPath.getValue(x, y) + costsCopy.getValue(x, y) * demandCopy.get(y));
                 supplyCopy.set(x, supplyCopy.get(x) - demandCopy.get(y));
-                //System.out.println(resultPath.getValue(x, y) + " "+ (costsCopy.getValue(x, y) * demandCopy.get(y)));
                 demandCopy.set(y, 0);
                 for (int i = 0; i < n; i++) {
                     costsCopy.setValue(i, y, 0);
                 }
             }
             costsCopy.setValue(x, y, 0);
-//            for (int i = 0; i < n; i++) {
-//                for (int j = 0; j < m; j++) {
-//                    System.out.print(costsCopy.getValue(i, j) + " ");
-//                }
-//                System.out.println("");
-//            }
-//            for (int i = 0; i < n; i++) {
-//                System.out.println(resultPath.getValue(i, y));
-//            }
-            //System.out.println("_____________ max - " + x + "," + y + "," + max);
-//            for (int i = 0; i < demandCopy.size(); i++) {
-//                System.out.println(demandCopy.get(i));
-//            }
         }
-//        } while (demandCopy.getSumValues() != 0);
         for (int k = 0; k < n; k++) {
             for (int l = 0; l < m; l++) {
                 if (resultPath.getValue(k, l) == -1) {
@@ -464,18 +418,9 @@ class Matrix {
     }
 
     public double[] getColumn(int i) {
-//        System.out.println(i);
-//        for (int j = 0; j < rows; j++) {
-//            for (int k = 0; k < cols; k++) {
-//                System.out.print(values[j][k] + " ");
-//            }
-//            System.out.println();
-//        }
-        //System.out.println("column" + i);
         double[] column = new double[rows];
         for (int row = 0; row < rows; row++) {
             column[row] = values[row][i];
-           //System.out.println(column[row]);
         }
         return column;
     }
@@ -515,7 +460,7 @@ class Matrix {
     }
 
     public double max_Elements_From_Row(int row, Matrix matrix) {
-        int n = getNumRows();
+        int n = getNumCols();
         double[] Row = getRow(row);
         double[] newRow = new double[Row.length];
         for (int i = 0; i < Row.length; i++) {
@@ -551,7 +496,7 @@ class Matrix {
     }
 
     public double max_Elements_From_Column(int column, Matrix matrix) {
-        int n = getNumCols();
+        int n = getNumRows();
         double[] Column = getColumn(column);
         double[] newColumn = new double[Column.length];
         for (int i = 0; i < Column.length; i++) {
