@@ -10,7 +10,7 @@ public class NumericalMethods {
 
         // Define the interval [a, b], tolerance (epsilon), and the function f(x)
         double a1 = 1, b1 = 2, epsilon1 = 1e-6;
-        Function<Double, Double> f1 = x -> Math.pow(x, 5) - 6 * Math.pow(x, 2) + 11 * x - 6;
+        Function<Double, Double> f1 = x -> Math.pow(x, 3) - 6 * Math.pow(x, 2) + 11 * x - 6;
 
         // Call the bisection method to find the root
         double root = bisection(f1, a1, b1, epsilon1);
